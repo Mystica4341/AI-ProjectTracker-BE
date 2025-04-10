@@ -1,0 +1,67 @@
+create database TrackingWebsite
+
+use TrackingWebsite
+
+CREATE TABLE Users (
+    IdUser INT IDENTITY(1,1) PRIMARY KEY,
+    Username NVARCHAR(50) UNIQUE,
+    Fullname NVARCHAR(100),
+    PhoneNumber NVARCHAR(20) UNIQUE,
+    Email NVARCHAR(100) UNIQUE,
+    Password NVARCHAR(255),
+    Role NVARCHAR(50),
+    Permission NVARCHAR(MAX) NULL
+);
+
+CREATE TABLE Projects (
+    IdProject INT IDENTITY(1,1) PRIMARY KEY,
+    ProjectName NVARCHAR(100),
+    DateCreate NVARCHAR(20),
+    Manager int DEFAULT 0,
+    Status NVARCHAR(20) CHECK (Status IN ('Active', 'Completed', 'On Hold', 'Cancelled')) NOT NULL DEFAULT 'Active',
+    Priority NVARCHAR(10) CHECK (Priority IN ('Low', 'Medium', 'High')) NOT NULL DEFAULT 'Medium',
+    FOREIGN KEY (Manager) REFERENCES Users(IdUser) ON DELETE CASCADE
+);
+
+CREATE TABLE ProjectMember (
+    IdProjectMember INT IDENTITY(1,1) PRIMARY KEY,
+    IdUser INT,
+    UserRole NVARCHAR(50),
+    IdProject INT,
+    FOREIGN KEY (IdUser) REFERENCES Users(IdUser),
+    FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
+);
+
+CREATE TABLE Task (
+    IdTask INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(200),
+    Status NVARCHAR(20) CHECK (Status IN ('Pending', 'In Progress', 'Completed', 'Blocked')) NOT NULL DEFAULT 'Pending',
+    DueDate NVARCHAR(20),
+    Priority NVARCHAR(10) CHECK (Priority IN ('Low', 'Medium', 'High')) NOT NULL DEFAULT 'Medium',
+    IdProject INT,
+    FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
+);
+
+CREATE TABLE ChatHistory (
+    IdSession INT IDENTITY(1,1) PRIMARY KEY,
+    TimeCreate NVARCHAR(20),
+    Context NVARCHAR(MAX),
+    Title NVARCHAR(200),
+    IdUser INT,
+    FOREIGN KEY (IdUser) REFERENCES Users(IdUser) ON DELETE CASCADE
+);
+
+INSERT INTO Users (Username, Fullname, PhoneNumber, Email, Password, Role, Permission)
+VALUES (N'john_doe', N'John Doe', '123456789', 'john@example.com', 'hashed_password', N'Admin', N'Full Access');
+
+INSERT INTO Projects (ProjectName, DateCreate, Manager, Status, Priority)
+VALUES (N'Project A', '24/3/2025', 1, N'Active', N'High');
+
+INSERT INTO ProjectMember (IdUser, UserRole, IdProject)
+VALUES (1, N'Developer', 1);
+
+INSERT INTO Task (Title, Status, DueDate, Priority, IdProject)
+VALUES (N'Task 1', N'Pending', '10/4/2025', N'High', 1);
+
+INSERT INTO ChatHistory (Context, Title, IdUser)
+VALUES (N'Discussion about Project A', N'Project A Meeting', 1);
