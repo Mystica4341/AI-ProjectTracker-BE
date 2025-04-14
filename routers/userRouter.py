@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models.user import User
-from pydantic import BaseModel
 from DAO import userDAO
+# import Schema
+from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema
 
 router = APIRouter()
 
@@ -13,39 +13,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# Define the User schema and add config for ORM
-class UserSchema(BaseModel):
-    IdUser: int
-    Username: str
-    Fullname: str
-    Email: str
-    Password: str
-    PhoneNumber: str
-    Role: str
-    Permission: str
-    class Config:
-        orm_mode = True
-
-class UserUpdateSchema(BaseModel):
-    Username: str
-    Fullname: str
-    Email: str
-    Password: str
-    PhoneNumber: str
-    Role: str
-    Permission: str
-    class Config:
-        orm_mode = True
-
-class UserCreateSchema(BaseModel):
-    Username: str
-    Fullname: str
-    Email: str
-    Password: str
-    PhoneNumber: str
-    class Config:
-        orm_mode = True
 
 @router.get("/", response_model=list[UserSchema])
 def getAllUsers(db: Session = Depends(get_db)):

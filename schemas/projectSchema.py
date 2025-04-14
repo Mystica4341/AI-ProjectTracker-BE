@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional
 from datetime import datetime
 
+# Define the Project schema and add config for ORM
 class ProjectSchema(BaseModel):
     IdProject: int
     ProjectName: str
