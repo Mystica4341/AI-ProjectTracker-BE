@@ -2,8 +2,18 @@ from sqlalchemy.orm import Session
 from models.user import User
 from fastapi import HTTPException
 
-def getAllUsers(db: Session):
-    return db.query(User).all()
+def getAllUsers(db: Session, page: int, pageSize: int, searchTerm: str = None):
+    query =db.query(User)
+    # filter by search term
+    if searchTerm:
+        query = db.query(User).filter(User.Username == searchTerm or User.Fullname == searchTerm or User.Email == searchTerm)
+    # sorting
+    query = query.order_by(User.IdUser.asc())
+    # pagination
+    users = query.offset((page - 1) * pageSize).limit(pageSize).all()
+    # get total count
+    totalCount = db.query(User).count()
+    return users, totalCount
 
 def getUserById(db: Session, id: int):
     user = db.query(User).filter(User.IdUser == id).first()
@@ -67,6 +77,7 @@ def updateUser(db: Session, id: int, username: str, fullname: str, email: str, p
       user = getUserById(db, id)
     except HTTPException as e:
       raise e
+
     user.Username = username
     user.Fullname = fullname
     user.Email = email

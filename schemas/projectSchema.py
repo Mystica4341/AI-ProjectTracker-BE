@@ -26,13 +26,19 @@ class ProjectUpdateSchema(BaseModel):
     Manager: Optional[int] = None
     Status: Optional[str] = None
     Priority: Optional[str] = None
-
     class Config:
         orm_mode = True
 
 class ProjectCreateSchema(BaseModel):
     ProjectName: str
+    class Config:
+        orm_mode = True
 
+class ProjectPaginationSchema(BaseModel):
+    page: int
+    pageSize: int
+    totalCount: int
+    data: list[ProjectSchema]
     class Config:
         orm_mode = True
 

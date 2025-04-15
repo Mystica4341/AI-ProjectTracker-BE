@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from DAO import taskDAO
 #import Schema
-from schemas.taskSchema import TaskSchema, TaskCreateSchema, TaskUpdateSchema, StatusEnum, PriorityEnum
+from schemas.taskSchema import TaskSchema, TaskCreateSchema, TaskUpdateSchema, StatusEnum, PriorityEnum, TaskPaginationSchema
 
 router = APIRouter()
 
@@ -14,9 +14,23 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/", response_model=list[TaskSchema])
-def getAllTasks(db: Session = Depends(get_db)):
-    return taskDAO.getAllTasks(db)
+@router.get("/", response_model=TaskPaginationSchema)
+def getAllTasks(
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
+    pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
+    searchTerm: str = Query(None) # search query, default is None
+    ):
+    try:
+        tasks, totalCount = taskDAO.getAllTasks(db, page, pageSize, searchTerm)
+        return {
+                "page": page,
+                "pageSize": pageSize,
+                "totalCount": totalCount,
+                "data": tasks
+            }
+    except HTTPException as e:
+        raise e
 
 @router.get("/{id}", response_model=TaskSchema)
 def getTaskById(id: int, db: Session = Depends(get_db)):

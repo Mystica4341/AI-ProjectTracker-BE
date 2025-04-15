@@ -33,3 +33,17 @@ class UserCreateSchema(BaseModel):
     PhoneNumber: str
     class Config:
         orm_mode = True
+
+class UserLoginSchema(BaseModel):
+    Username: str
+    Password: str
+    class Config:
+        orm_mode = True
+
+class UserPaginationSchema(BaseModel):
+    page: int
+    pageSize: int 
+    totalCount: int
+    data: list[UserSchema]
+    class Config:
+        orm_mode = True

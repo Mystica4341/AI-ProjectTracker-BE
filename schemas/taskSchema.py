@@ -18,7 +18,6 @@ class TaskCreateSchema(BaseModel):
   DueDate: Optional[str]
   Priority: Optional[str] = "Medium"
   IdProject: Optional[int]
-
   class Config:
     orm_mode = True
 
@@ -28,10 +27,16 @@ class TaskUpdateSchema(BaseModel):
   DueDate: Optional[str]
   Priority: Optional[str]
   IdProject: Optional[int]
-
   class Config:
     orm_mode = True
 
+class TaskPaginationSchema(BaseModel):
+  page: int
+  pageSize: int
+  totalCount: int
+  data: list[TaskSchema]
+  class Config:
+    orm_mode = True
 
 # Define enums for validation
 class StatusEnum(str, Enum):

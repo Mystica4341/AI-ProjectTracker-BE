@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from datetime import datetime
 from DAO import projectDAO
 #import Schema
-from schemas.projectSchema import ProjectSchema, ProjectUpdateSchema, ProjectCreateSchema, StatusEnum, PriorityEnum
+from schemas.projectSchema import ProjectSchema, ProjectUpdateSchema, ProjectCreateSchema, StatusEnum, PriorityEnum, ProjectPaginationSchema
 
 router = APIRouter()
 
@@ -16,9 +16,23 @@ def get_db():
         db.close()
 
 # Get all projects
-@router.get("/", response_model=list[ProjectSchema])
-def getAllProjects(db: Session = Depends(get_db)):
-    return projectDAO.getAllProjects(db)
+@router.get("/", response_model=ProjectPaginationSchema)
+def getAllProjects(
+  db: Session = Depends(get_db),
+  page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
+  pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
+  searchTerm: str = Query(None) # search query, default is None
+  ):
+    try:
+      projects, totalCount = projectDAO.getAllProjects(db, page, pageSize, searchTerm)
+      return {
+              "page": page,
+              "pageSize": pageSize,
+              "totalCount": totalCount,
+              "data": projects
+          }
+    except HTTPException as e:
+      raise e
 
 # Get project by id
 @router.get("/{id}", response_model=ProjectSchema)
