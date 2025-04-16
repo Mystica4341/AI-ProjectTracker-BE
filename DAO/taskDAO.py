@@ -3,7 +3,7 @@ from models.task import Task
 from models.project import Project
 from fastapi import HTTPException
 
-def getAllTasks(db: Session, page: int, pageSize: int, searchTerm: str = None):
+def getTasksPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(Task)
   # filter by search term
   if searchTerm:

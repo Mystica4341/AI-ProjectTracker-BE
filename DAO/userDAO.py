@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from models.user import User
 from fastapi import HTTPException
 
-def getAllUsers(db: Session, page: int, pageSize: int, searchTerm: str = None):
+def getUsersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
     query =db.query(User)
     # filter by search term
     if searchTerm:

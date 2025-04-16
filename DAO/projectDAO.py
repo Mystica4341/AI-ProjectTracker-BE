@@ -3,7 +3,7 @@ from models.project import Project
 from fastapi import HTTPException
 
 
-def getAllProjects(db: Session, page: int, pageSize: int, searchTerm: str = None):
+def getProjectPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(Project)
   # filter by search term
   if searchTerm:

@@ -17,14 +17,14 @@ def get_db():
 
 # Get all projects
 @router.get("/", response_model=ProjectPaginationSchema)
-def getAllProjects(
+def getProjectsPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
   pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
   searchTerm: str = Query(None) # search query, default is None
   ):
     try:
-      projects, totalCount = projectDAO.getAllProjects(db, page, pageSize, searchTerm)
+      projects, totalCount = projectDAO.getProjectsPagination(db, page, pageSize, searchTerm)
       return {
               "page": page,
               "pageSize": pageSize,

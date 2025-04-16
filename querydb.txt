@@ -23,7 +23,7 @@ CREATE TABLE Projects (
     FOREIGN KEY (Manager) REFERENCES Users(IdUser) ON DELETE CASCADE
 );
 
-CREATE TABLE ProjectMember (
+CREATE TABLE ProjectMembers (
     IdProjectMember INT IDENTITY(1,1) PRIMARY KEY,
     IdUser INT,
     UserRole NVARCHAR(50),
@@ -32,7 +32,7 @@ CREATE TABLE ProjectMember (
     FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
 );
 
-CREATE TABLE Task (
+CREATE TABLE Tasks (
     IdTask INT IDENTITY(1,1) PRIMARY KEY,
     Title NVARCHAR(200),
     Status NVARCHAR(20) CHECK (Status IN ('Pending', 'In Progress', 'Completed', 'Blocked')) NOT NULL DEFAULT 'Pending',
@@ -41,6 +41,14 @@ CREATE TABLE Task (
     IdProject INT,
     FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
 );
+
+CREATE TABLE ToDos (
+    IdToDo INT IDENTITY(1,1) PRIMARY KEY,
+    IdProjectMember INT,
+    IdTask INT,
+    FOREIGN KEY (IdProjectMember) REFERENCES ProjectMembers(IdProjectMember) ON DELETE CASCADE,
+    FOREIGN KEY (IdTask) REFERENCES Tasks(IdTask)
+)
 
 CREATE TABLE ChatHistory (
     IdSession INT IDENTITY(1,1) PRIMARY KEY,
@@ -57,11 +65,14 @@ VALUES (N'john_doe', N'John Doe', '123456789', 'john@example.com', 'hashed_passw
 INSERT INTO Projects (ProjectName, DateCreate, Manager, Status, Priority)
 VALUES (N'Project A', '24/3/2025', 1, N'Active', N'High');
 
-INSERT INTO ProjectMember (IdUser, UserRole, IdProject)
+INSERT INTO ProjectMembers (IdUser, UserRole, IdProject)
 VALUES (1, N'Developer', 1);
 
-INSERT INTO Task (Title, Status, DueDate, Priority, IdProject)
+INSERT INTO Tasks (Title, Status, DueDate, Priority, IdProject)
 VALUES (N'Task 1', N'Pending', '10/4/2025', N'High', 1);
+
+INSERT INTO ToDos (IdProjectMember, IdTask)
+VALUES (1, 1);
 
 INSERT INTO ChatHistory (Context, Title, IdUser)
 VALUES (N'Discussion about Project A', N'Project A Meeting', 1);

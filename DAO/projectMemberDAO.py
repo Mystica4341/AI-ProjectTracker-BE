@@ -4,7 +4,7 @@ from models.project import Project
 from models.user import User
 from fastapi import HTTPException
 
-def getAllProjectMembers(db: Session, page: int, pageSize: int, searchTerm: str = None):
+def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(ProjectMember)
   # filter by search term
   if searchTerm:

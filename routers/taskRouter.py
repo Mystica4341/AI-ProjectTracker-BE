@@ -15,14 +15,14 @@ def get_db():
         db.close()
 
 @router.get("/", response_model=TaskPaginationSchema)
-def getAllTasks(
+def getTasksPagination(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
     pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
     searchTerm: str = Query(None) # search query, default is None
     ):
     try:
-        tasks, totalCount = taskDAO.getAllTasks(db, page, pageSize, searchTerm)
+        tasks, totalCount = taskDAO.getTasksPagination(db, page, pageSize, searchTerm)
         return {
                 "page": page,
                 "pageSize": pageSize,

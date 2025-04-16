@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Enum
 from database import Base
 
 class Task(Base):
-    __tablename__ = "Task"
+    __tablename__ = "Tasks"
 
     IdTask = Column(Integer, primary_key=True, index=True)
     Title = Column(String)
