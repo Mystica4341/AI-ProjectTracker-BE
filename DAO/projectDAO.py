@@ -2,19 +2,28 @@ from sqlalchemy.orm import Session
 from models.project import Project
 from fastapi import HTTPException
 
-
-def getProjectPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
+def getProjectsPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(Project)
+
   # filter by search term
   if searchTerm:
-    query = db.query(Project).filter(Project.ProjectName == searchTerm or Project.Status == searchTerm or Project.Priority == searchTerm)
+    query = query.filter(Project.ProjectName.ilike(f"%{searchTerm}%") | Project.Status.ilike(f"%{searchTerm}%") | Project.Priority.ilike(f"%{searchTerm}%"))
+
   # sorting
   query = query.order_by(Project.IdProject.asc())
+
   # pagination
   projects = query.offset((page - 1) * pageSize).limit(pageSize).all()
+
   # get total count
   totalCount = db.query(Project).count()
-  return projects, totalCount
+
+  return {
+          "page": page,
+          "pageSize": pageSize,
+          "totalCount": totalCount,
+          "data": projects
+        }
 
 def getProjectById(db: Session, id: int):
   project = db.query(Project).filter(Project.IdProject == id).first()

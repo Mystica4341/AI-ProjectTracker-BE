@@ -1,5 +1,8 @@
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey
 from database import Base
+from sqlalchemy.orm import relationship
+# from models.user import User
+# from models.project import Project
 
 class ProjectMember(Base):
   __tablename__ = "ProjectMembers"

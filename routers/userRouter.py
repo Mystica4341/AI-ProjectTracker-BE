@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from DAO import userDAO
 # import Schema
-from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema, UserPaginationSchema
+from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ def get_db():
   finally:
       db.close()
 
-@router.get("/", response_model=UserPaginationSchema)
+@router.get("/")
 def getUsersPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
@@ -22,13 +22,7 @@ def getUsersPagination(
   searchTerm: str = Query(None) # search query, default is None
   ):
   try:
-    users, totalCount = userDAO.getUsersPagination(db, page, pageSize, searchTerm)
-    return {
-            "page": page,
-            "pageSize": pageSize,
-            "totalCount": totalCount,
-            "data": users
-        }
+    return userDAO.getUsersPagination(db, page, pageSize, searchTerm)
   except HTTPException as e:
     raise e
 

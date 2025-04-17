@@ -4,7 +4,7 @@ from database import SessionLocal
 from datetime import datetime
 from DAO import projectDAO
 #import Schema
-from schemas.projectSchema import ProjectSchema, ProjectUpdateSchema, ProjectCreateSchema, StatusEnum, PriorityEnum, ProjectPaginationSchema
+from schemas.projectSchema import ProjectSchema, ProjectUpdateSchema, ProjectCreateSchema, StatusEnum, PriorityEnum
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ def get_db():
         db.close()
 
 # Get all projects
-@router.get("/", response_model=ProjectPaginationSchema)
+@router.get("/")
 def getProjectsPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
@@ -24,13 +24,7 @@ def getProjectsPagination(
   searchTerm: str = Query(None) # search query, default is None
   ):
     try:
-      projects, totalCount = projectDAO.getProjectsPagination(db, page, pageSize, searchTerm)
-      return {
-              "page": page,
-              "pageSize": pageSize,
-              "totalCount": totalCount,
-              "data": projects
-          }
+      return projectDAO.getProjectsPagination(db, page, pageSize, searchTerm)
     except HTTPException as e:
       raise e
 

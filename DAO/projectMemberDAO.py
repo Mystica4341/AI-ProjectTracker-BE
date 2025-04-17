@@ -2,26 +2,77 @@ from sqlalchemy.orm import Session
 from models.projectMember import ProjectMember
 from models.project import Project
 from models.user import User
+from DAO import userDAO, projectDAO
 from fastapi import HTTPException
+
+def getAllProjectMembers(db: Session):
+  projectMembers = db.query(ProjectMember).all()
+  return projectMembers
 
 def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(ProjectMember)
+
   # filter by search term
   if searchTerm:
-    query = db.query(ProjectMember).filter(ProjectMember.UserRole == searchTerm)
+    query = query.filter(ProjectMember.UserRole.ilike(f"%{searchTerm}%"))
+
   # sorting
-  query = query.order_by(ProjectMember.UserRole.asc())
+  query = query.order_by(ProjectMember.IdProjectMember.asc())
+
   # pagination
   projectMembers = query.offset((page - 1) * pageSize).limit(pageSize).all()
+
   # get total count
   totalCount = db.query(ProjectMember).count()
-  return projectMembers, totalCount
+
+  # append and format data
+  results = [
+      {
+        "IdProjectMember": member.IdProjectMember,
+        "UserRole": member.UserRole,
+        "IdUser": member.IdUser,
+        "Fullname": db.query(User).filter(User.IdUser == member.IdUser).first().Fullname,
+        "Email": db.query(User).filter(User.IdUser == member.IdUser).first().Email,
+        "IdProject": member.IdProject,
+        "ProjectName": db.query(Project).filter(Project.IdProject == member.IdProject).first().ProjectName
+      }
+      for member in projectMembers
+    ]
+
+  return {
+          "page": page,
+          "pageSize": pageSize,
+          "totalCount": totalCount,
+          "data": results
+      }
 
 def getProjectMemberById(db: Session, id: int):
   projectMember = db.query(ProjectMember).filter(ProjectMember.IdProjectMember == id).first()
   if projectMember is None:
     raise HTTPException(status_code=404, detail="Project member not found")
+
+  try:
+    user = userDAO.getUserById(db, projectMember.IdUser)
+    project = projectDAO.getProjectById(db, projectMember.IdProject)
+  except HTTPException as e:
+    raise e
+
+  # Attach additional fields to the ORM object (if needed)
+  projectMember.Fullname = user.Fullname
+  projectMember.Email = user.Email
+  projectMember.ProjectName = project.ProjectName
+
   return projectMember
+
+  # return {
+  #   "IdProjectMember": projectMember.IdProjectMember,
+  #   "UserRole": projectMember.UserRole,
+  #   "IdUser": projectMember.IdUser,
+  #   "Fullname": user.Fullname,
+  #   "Email": user.Email,
+  #   "IdProject": projectMember.IdProject,
+  #   "ProjectName": project.ProjectName
+  # }
 
 def createProjectMember(db: Session, IdUser: int, UserRole: str, IdProject: int):
   try:
@@ -47,7 +98,7 @@ def updateProjectMember(db: Session, id: int, IdUser: int, UserRole: str, IdProj
     # check if user exists
     existUser(db, IdUser)
     # check if there is project member already exists
-    duplicateProjectMember(db, IdUser, IdProject)
+    # duplicateProjectMember(db, IdUser, IdProject)
     # find project member by Id
     projectMember = getProjectMemberById(db, id)
   except HTTPException as e:

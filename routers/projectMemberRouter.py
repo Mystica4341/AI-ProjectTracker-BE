@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from DAO import projectMemberDAO
-from schemas.projectMemberSchema import ProjectMemberSchema, ProjectMemberCreateSchema, ProjectMemberUpdateSchema, ProjectMemberPaginationSchema
+from schemas.projectMemberSchema import ProjectMemberSchema, ProjectMemberCreateSchema, ProjectMemberUpdateSchema
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ def get_db():
   finally:
       db.close()
 
-@router.get("/", response_model=ProjectMemberPaginationSchema)
+@router.get("/")
 def getProjectMembersPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
@@ -21,13 +21,7 @@ def getProjectMembersPagination(
   searchTerm: str = Query(None) # search query, default is None
   ):
   try:
-    projectMembers, totalCount = projectMemberDAO.getProjectMembersPagination(db, page, pageSize, searchTerm)
-    return {
-            "page": page,
-            "pageSize": pageSize,
-            "totalCount": totalCount,
-            "data": projectMembers
-        }
+    return projectMemberDAO.getProjectMembersPagination(db, page, pageSize, searchTerm)
   except HTTPException as e:
     raise e
 

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from DAO import taskDAO
 #import Schema
-from schemas.taskSchema import TaskSchema, TaskCreateSchema, TaskUpdateSchema, StatusEnum, PriorityEnum, TaskPaginationSchema
+from schemas.taskSchema import TaskSchema, TaskCreateSchema, TaskUpdateSchema, StatusEnum, PriorityEnum
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/", response_model=TaskPaginationSchema)
+@router.get("/")
 def getTasksPagination(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
@@ -22,13 +22,7 @@ def getTasksPagination(
     searchTerm: str = Query(None) # search query, default is None
     ):
     try:
-        tasks, totalCount = taskDAO.getTasksPagination(db, page, pageSize, searchTerm)
-        return {
-                "page": page,
-                "pageSize": pageSize,
-                "totalCount": totalCount,
-                "data": tasks
-            }
+        return taskDAO.getTasksPagination(db, page, pageSize, searchTerm)
     except HTTPException as e:
         raise e
 

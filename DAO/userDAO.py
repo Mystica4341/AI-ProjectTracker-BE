@@ -4,16 +4,26 @@ from fastapi import HTTPException
 
 def getUsersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
     query =db.query(User)
+
     # filter by search term
     if searchTerm:
-        query = db.query(User).filter(User.Username == searchTerm or User.Fullname == searchTerm or User.Email == searchTerm)
+        query = query.filter(User.Username.ilike(f"%{searchTerm}%") | User.Fullname.ilike(f"%{searchTerm}%") | User.Email.ilike(f"%{searchTerm}%") | User.PhoneNumber.ilike(f"%{searchTerm}%"))
+
     # sorting
     query = query.order_by(User.IdUser.asc())
+
     # pagination
     users = query.offset((page - 1) * pageSize).limit(pageSize).all()
+
     # get total count
     totalCount = db.query(User).count()
-    return users, totalCount
+
+    return {
+            "page": page,
+            "pageSize": pageSize,
+            "totalCount": totalCount,
+            "data": users
+        }
 
 def getUserById(db: Session, id: int):
     user = db.query(User).filter(User.IdUser == id).first()

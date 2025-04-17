@@ -11,6 +11,7 @@ class UserSchema(BaseModel):
     PhoneNumber: str
     Role: Optional[str]
     Permission: Optional[str]
+
     class Config:
         orm_mode = True
 
@@ -22,6 +23,7 @@ class UserUpdateSchema(BaseModel):
     PhoneNumber: str
     Role: Optional[str]
     Permission: Optional[str]
+
     class Config:
         orm_mode = True
 
@@ -29,21 +31,15 @@ class UserCreateSchema(BaseModel):
     Username: str
     Fullname: str
     Email: str
-    Password: Optional[str]
+    Password: Optional[str] = "Pa$$w0rd"
     PhoneNumber: str
+
     class Config:
         orm_mode = True
 
 class UserLoginSchema(BaseModel):
     Username: str
     Password: str
-    class Config:
-        orm_mode = True
-
-class UserPaginationSchema(BaseModel):
-    page: int
-    pageSize: int 
-    totalCount: int
-    data: list[UserSchema]
+    
     class Config:
         orm_mode = True
