@@ -31,8 +31,8 @@ def getProjectById(db: Session, id: int):
     raise HTTPException(status_code=404, detail="Project not found")
   return project
 
-def createProject(db: Session, ProjectName: str, DateCreate: str, Manager: int, Status: str, Priority: str):
-  project = Project(ProjectName=ProjectName, DateCreate=DateCreate, Manager=Manager, Status=Status, Priority=Priority)
+def createProject(db: Session, ProjectName: str, Manager: int, Status: str, Priority: str):
+  project = Project(ProjectName=ProjectName, Manager=Manager, Status=Status, Priority=Priority)
   db.add(project)
   db.commit()
   db.refresh(project)

@@ -40,7 +40,7 @@ def getProjectById(id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=ProjectSchema)
 def createProject(project: ProjectCreateSchema, db: Session = Depends(get_db)):
     try:
-      return projectDAO.createProject(db, project.ProjectName, None, None, None, None)
+      return projectDAO.createProject(db, project.ProjectName, None, None, None)
     except HTTPException as e:
       raise e  
 

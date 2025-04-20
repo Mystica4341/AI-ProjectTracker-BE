@@ -4,15 +4,15 @@ from typing import Optional
 
 class TodoSchema(BaseModel):
   IdTodo: int
-  ProjectName: str
+  ProjectName: Optional[str] = None
   IdProjectMember: int
-  Fullname: str
-  Email: str
+  Fullname: Optional[str] = None
+  Email: Optional[str] = None
   IdTask: int
-  Title: str
-  Status: str
-  DueDate: str
-  Priority: str
+  Title: Optional[str] = None
+  Status: Optional[str] = None
+  DueDate: Optional[str] = None
+  Priority: Optional[str] = None
 
   class Config:
     orm_mode = True

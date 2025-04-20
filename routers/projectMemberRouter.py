@@ -32,14 +32,14 @@ def getProjectMemberById(id: int, db: Session = Depends(get_db)):
   except HTTPException as e:
     raise e
 
-@router.post("/", response_model=ProjectMemberSchema)
+@router.post("/", response_model=ProjectMemberSchema, response_model_exclude_none=True)
 def createProjectMember(projectMember: ProjectMemberCreateSchema, db: Session = Depends(get_db)):
   try:
     return projectMemberDAO.createProjectMember(db, projectMember.IdUser, projectMember.UserRole, projectMember.IdProject)
   except HTTPException as e:
     raise e
 
-@router.put("/{id}", response_model=ProjectMemberSchema)
+@router.put("/{id}", response_model=ProjectMemberSchema, response_model_exclude_none=True)
 def updateProjectMember(id: int, projectMember: ProjectMemberUpdateSchema, db: Session = Depends(get_db)):
   try:
     return projectMemberDAO.updateProjectMember(db, id, projectMember.IdUser, projectMember.UserRole, projectMember.IdProject)

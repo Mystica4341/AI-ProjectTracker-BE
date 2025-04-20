@@ -9,7 +9,7 @@ class TaskSchema(BaseModel):
   DueDate: Optional[str]
   Priority: Optional[str]
   IdProject: Optional[int]
-  ProjectName: Optional[str]
+  ProjectName: Optional[str] = None
 
   class Config:
     orm_mode = True

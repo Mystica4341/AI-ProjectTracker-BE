@@ -64,16 +64,6 @@ def getProjectMemberById(db: Session, id: int):
 
   return projectMember
 
-  # return {
-  #   "IdProjectMember": projectMember.IdProjectMember,
-  #   "UserRole": projectMember.UserRole,
-  #   "IdUser": projectMember.IdUser,
-  #   "Fullname": user.Fullname,
-  #   "Email": user.Email,
-  #   "IdProject": projectMember.IdProject,
-  #   "ProjectName": project.ProjectName
-  # }
-
 def createProjectMember(db: Session, IdUser: int, UserRole: str, IdProject: int):
   try:
     # check if project exists

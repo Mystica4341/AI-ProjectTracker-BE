@@ -5,10 +5,10 @@ class ProjectMemberSchema(BaseModel):
   IdProjectMember: int
   IdUser: int
   UserRole: str
-  Fullname: Optional[str]
-  Email: Optional[str]
+  Fullname: Optional[str] = None
+  Email: Optional[str] = None
   IdProject: int
-  ProjectName: Optional[str]
+  ProjectName: Optional[str] = None
 
   class Config:
     orm_mode = True

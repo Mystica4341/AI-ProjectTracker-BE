@@ -33,7 +33,7 @@ def getTaskById(id: int, db: Session = Depends(get_db)):
     except HTTPException as e:
         raise e
 
-@router.post("/", response_model=TaskSchema)
+@router.post("/", response_model=TaskSchema, response_model_exclude_none=True)
 def createTask(task: TaskCreateSchema, db: Session = Depends(get_db)):
     # Validate Priority
     if task.Priority is not None and task.Priority not in PriorityEnum.__members__.values():
@@ -47,7 +47,7 @@ def createTask(task: TaskCreateSchema, db: Session = Depends(get_db)):
     except HTTPException as e:
         raise e
 
-@router.put("/{id}", response_model=TaskSchema)
+@router.put("/{id}", response_model=TaskSchema, response_model_exclude_none=True)
 def updateTask(id: int, task: TaskUpdateSchema, db: Session = Depends(get_db)):
     # Validate Priority
     if task.Priority and task.Priority not in PriorityEnum.__members__.values():

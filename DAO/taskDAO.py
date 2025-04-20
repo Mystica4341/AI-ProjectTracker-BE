@@ -56,16 +56,6 @@ def getTaskById(db: Session, id: int):
   task.ProjectName = project.ProjectName
 
   return task
-  
-  # return {
-  #   "IdTask": task.IdTask,
-  #   "Title": task.Title,
-  #   "Status": task.Status,
-  #   "DueDate": task.DueDate,
-  #   "Priority": task.Priority,
-  #   "IdProject": task.IdProject,
-  #   "ProjectName": project.ProjectName
-  # }
 
 def createTask(db: Session, title: str, due_date: str, priority: str, id_project: int):
   try:
