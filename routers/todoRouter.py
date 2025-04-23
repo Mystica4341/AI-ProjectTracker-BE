@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from DAO import todoDAO
 #import Schema
-from schemas.todoSchema import TodoSchema, TodoCreateSchema, TodoUpdateSchema
+from schemas.todoSchema import TodoSchema, TodoCreateSchema, TodoUpdateSchema, TodoPaginationSchema
 
 router = APIRouter()
 
@@ -13,6 +13,18 @@ def get_db():
       yield db
   finally:
       db.close()
+
+@router.get("/", response_model=TodoPaginationSchema)
+def getTodoPagination(
+    db: Session = Depends(get_db),
+    page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
+    pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
+    searchTerm: str = Query(None), # search query, default is None
+    ):
+    try:
+        return todoDAO.getTodosPagination(db, page, pageSize, searchTerm)
+    except HTTPException as e:
+        raise e
 
 @router.get("/{id}", response_model=TodoSchema)
 def getTodoById(id: int, db: Session = Depends(get_db)):

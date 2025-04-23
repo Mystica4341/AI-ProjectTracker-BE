@@ -28,3 +28,12 @@ class ProjectMemberUpdateSchema(BaseModel):
   
   class Config:
     orm_mode = True
+
+class ProjectMemberPaginationSchema(BaseModel):
+  page: int
+  pageSize: int
+  totalCount: int
+  data: list[ProjectMemberSchema]
+  
+  class Config:
+    orm_mode = True

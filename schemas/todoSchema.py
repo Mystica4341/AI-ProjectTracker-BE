@@ -30,3 +30,12 @@ class TodoCreateSchema(BaseModel):
 
   class Config:
     orm_mode = True
+
+class TodoPaginationSchema(BaseModel):
+  page: int
+  pageSize: int
+  totalCount: int
+  data: list[TodoSchema]
+
+  class Config:
+    orm_mode = True

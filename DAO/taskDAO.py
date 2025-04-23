@@ -21,24 +21,16 @@ def getTasksPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
   totalCount = db.query(Task).count()
 
   # append and format data
-  results = [
-      {
-        "IdTask": task.IdTask,
-        "Title": task.Title,
-        "Status": task.Status,
-        "DueDate": task.DueDate,
-        "Priority": task.Priority,
-        "IdProject": task.IdProject,
-        "ProjectName": db.query(Project).filter(Project.IdProject == task.IdProject).first().ProjectName
-      }
-      for task in tasks
-  ]
+  for t in tasks:
+    project = projectDAO.getProjectById(db, t.IdProject)
+    
+    t.ProjectName = project.ProjectName
 
   return {
           "page": page,
           "pageSize": pageSize,
           "totalCount": totalCount,
-          "data": results
+          "data": tasks
         }
 
 
@@ -52,7 +44,7 @@ def getTaskById(db: Session, id: int):
   except HTTPException as e:
     raise e
 
-  # Attach additional fields to the ORM object (if needed)
+  # append data
   task.ProjectName = project.ProjectName
 
   return task

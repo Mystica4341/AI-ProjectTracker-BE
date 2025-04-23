@@ -44,3 +44,12 @@ class PriorityEnum(str, Enum):
   Low = "Low"
   Medium = "Medium"
   High = "High"
+
+class TaskPaginationSchema(BaseModel):
+  page: int
+  pageSize: int
+  totalCount: int
+  data: list[TaskSchema]
+
+  class Config:
+    orm_mode = True

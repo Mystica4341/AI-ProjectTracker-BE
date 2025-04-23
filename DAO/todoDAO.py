@@ -5,6 +5,42 @@ from models.task import Task
 from fastapi import HTTPException
 from DAO import taskDAO, projectMemberDAO
 
+def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
+  query = db.query(Todo)
+
+  # filter by search term
+  if searchTerm:
+    query = query.filter(Todo.Title.ilike(f"%{searchTerm}%") | Todo.Status.ilike(f"%{searchTerm}%") | Todo.Priority.ilike(f"%{searchTerm}%"))
+
+  # sorting
+  query = query.order_by(Todo.IdTodo.asc())
+
+  # pagination
+  todos = query.offset((page - 1) * pageSize).limit(pageSize).all()
+
+  # get total count
+  totalCount = db.query(Todo).count()
+
+  # append and format data
+  for t in todos:
+    projectMember = getProjectMemberDetail(db, t.IdProjectMember)
+    task = getTaskDetail(db, t.IdTask)
+    
+    t.ProjectName = projectMember.ProjectName
+    t.Fullname = projectMember.Fullname
+    t.Email = projectMember.Email
+    t.Title = task.Title
+    t.Status = task.Status
+    t.DueDate = task.DueDate
+    t.Priority = task.Priority
+
+  return {
+          "page": page,
+          "pageSize": pageSize,
+          "totalCount": totalCount,
+          "data": todos
+        }
+
 def getTodoById(db: Session, id: int):
   todo = db.query(Todo).filter(Todo.IdTodo == id).first()
   if todo is None:
@@ -14,7 +50,7 @@ def getTodoById(db: Session, id: int):
   projectMember = getProjectMemberDetail(db, todo.IdProjectMember)
   task = getTaskDetail(db, todo.IdTask)
 
-  # Attach additional fields to the ORM object (if needed)
+  # append data
   todo.ProjectName = projectMember.ProjectName
   todo.Fullname = projectMember.Fullname
   todo.Email = projectMember.Email
@@ -30,7 +66,7 @@ def getTodoByIdProjectMember(db: Session, idProjectMember: int):
   if todo is None:
     raise HTTPException(status_code=404, detail="Todo not found")
   
-  # Attach additional fields to the ORM object (if needed)
+  # append data
   for t in todo:
     projectMember = getProjectMemberDetail(db, t.IdProjectMember)
     task = getTaskDetail(db, t.IdTask)
@@ -50,7 +86,7 @@ def getTodoByIdTask(db: Session, idTask: int):
   if todo is None:
     raise HTTPException(status_code=404, detail="Todo not found")
   
-  # Attach additional fields to the ORM object (if needed)
+  # append data
   for t in todo:
     projectMember = getProjectMemberDetail(db, t.IdProjectMember)
     task = getTaskDetail(db, t.IdTask)

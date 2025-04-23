@@ -47,3 +47,12 @@ class PriorityEnum(str, Enum):
     Low = "Low"
     Medium = "Medium"
     High = "High"
+
+class ProjectPagination(BaseModel):
+    page: int
+    pageSize: int
+    totalCount: int
+    data: list[ProjectSchema]
+
+    class Config:
+        orm_mode = True

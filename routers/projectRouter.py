@@ -3,8 +3,9 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from datetime import datetime
 from DAO import projectDAO
+from authentication import authorize
 #import Schema
-from schemas.projectSchema import ProjectSchema, ProjectUpdateSchema, ProjectCreateSchema, StatusEnum, PriorityEnum
+from schemas.projectSchema import ProjectSchema, ProjectUpdateSchema, ProjectCreateSchema, StatusEnum, PriorityEnum, ProjectPagination
 
 router = APIRouter()
 
@@ -16,12 +17,13 @@ def get_db():
         db.close()
 
 # Get all projects
-@router.get("/")
+@router.get("/", response_model=ProjectPagination)
 def getProjectsPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
   pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
-  searchTerm: str = Query(None) # search query, default is None
+  searchTerm: str = Query(None), # search query, default is None
+  user: dict = Depends(authorize("Admin")),
   ):
     try:
       return projectDAO.getProjectsPagination(db, page, pageSize, searchTerm)

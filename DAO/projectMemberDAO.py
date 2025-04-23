@@ -26,24 +26,19 @@ def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTer
   totalCount = db.query(ProjectMember).count()
 
   # append and format data
-  results = [
-      {
-        "IdProjectMember": member.IdProjectMember,
-        "UserRole": member.UserRole,
-        "IdUser": member.IdUser,
-        "Fullname": db.query(User).filter(User.IdUser == member.IdUser).first().Fullname,
-        "Email": db.query(User).filter(User.IdUser == member.IdUser).first().Email,
-        "IdProject": member.IdProject,
-        "ProjectName": db.query(Project).filter(Project.IdProject == member.IdProject).first().ProjectName
-      }
-      for member in projectMembers
-    ]
+  for member in projectMembers:
+    project = projectDAO.getProjectById(db, member.IdProject)
+    user = userDAO.getUserById(db, member.IdUser)
+    
+    member.Fullname = user.Fullname
+    member.Email = user.Email
+    member.ProjectName = project.ProjectName
 
   return {
           "page": page,
           "pageSize": pageSize,
           "totalCount": totalCount,
-          "data": results
+          "data": projectMembers
       }
 
 def getProjectMemberById(db: Session, id: int):
@@ -57,7 +52,7 @@ def getProjectMemberById(db: Session, id: int):
   except HTTPException as e:
     raise e
 
-  # Attach additional fields to the ORM object (if needed)
+  # append data
   projectMember.Fullname = user.Fullname
   projectMember.Email = user.Email
   projectMember.ProjectName = project.ProjectName

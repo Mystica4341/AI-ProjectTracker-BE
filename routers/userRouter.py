@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from DAO import userDAO
+from authentication import authorize
 # import Schema
-from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema
+from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema, UserPagination
 
 router = APIRouter()
 
@@ -14,12 +15,13 @@ def get_db():
   finally:
       db.close()
 
-@router.get("/")
+@router.get("/", response_model=UserPagination)
 def getUsersPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
   pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
-  searchTerm: str = Query(None) # search query, default is None
+  searchTerm: str = Query(None), # search query, default is None
+  user: dict = Depends(authorize("Admin")),
   ):
   try:
     return userDAO.getUsersPagination(db, page, pageSize, searchTerm)
@@ -50,7 +52,7 @@ def getUserByUsername(username: str, db: Session = Depends(get_db)):
 @router.post("/", response_model=UserSchema)
 def createUser(user: UserCreateSchema, db: Session = Depends(get_db)):
   try:
-    return userDAO.createUser(db, user.Username, user.Username, user.Email, user.Password, user.PhoneNumber)
+    return userDAO.createUser(db, user.Username, user.Fullname, user.Email, user.Password, user.PhoneNumber, user.Role, user.Permission)
   except HTTPException as e:
     raise e
 

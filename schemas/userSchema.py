@@ -33,6 +33,8 @@ class UserCreateSchema(BaseModel):
     Email: str
     Password: Optional[str] = "Pa$$w0rd"
     PhoneNumber: str
+    Role: Optional[str] = ""
+    Permission: Optional[str] = "none"
 
     class Config:
         orm_mode = True
@@ -41,5 +43,14 @@ class UserLoginSchema(BaseModel):
     Username: str
     Password: str
     
+    class Config:
+        orm_mode = True
+
+class UserPagination(BaseModel):
+    page: int
+    pageSize: int
+    totalCount: int
+    data: list[UserSchema]
+
     class Config:
         orm_mode = True

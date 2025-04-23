@@ -1,1 +1,7 @@
-sqlalchemy pyodbc fastapi[standard] uvicorn
+sqlalchemy 
+pyodbc 
+fastapi[standard] 
+uvicorn 
+python-jose 
+passlib 
+bcrypt

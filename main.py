@@ -1,12 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 import uvicorn
+from typing import Annotated
 from database import engine, Base
-from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter
+from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 #add middleware
 app.add_middleware(
@@ -20,6 +24,10 @@ app.add_middleware(
 @app.get("/")
 async def root():
   return {"message": "Hello World"}
+
+@app.get("/items/")
+async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
+    return {"token": token}
 
 # Include the user router
 app.include_router(userRouter.router, prefix="/api/users", tags=["users"])
@@ -35,6 +43,9 @@ app.include_router(projectMemberRouter.router, prefix="/api/members", tags=["mem
 
 # Include the todo router
 app.include_router(todoRouter.router, prefix="/api/todos", tags=["todos"])
+
+# Include the authentication router
+app.include_router(authRouter.router, prefix="/api", tags=["auth"])
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
