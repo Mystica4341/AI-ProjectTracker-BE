@@ -18,10 +18,14 @@ def getProjectsPagination(db: Session, page: int, pageSize: int, searchTerm: str
   # get total count
   totalCount = db.query(Project).count()
 
+  # get total pages
+  totalPages = (totalCount + pageSize - 1) // pageSize
+
   return {
           "page": page,
           "pageSize": pageSize,
           "totalCount": totalCount,
+          "totalPages": totalPages,
           "data": projects
         }
 

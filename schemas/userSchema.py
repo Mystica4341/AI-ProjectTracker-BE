@@ -50,6 +50,7 @@ class UserPagination(BaseModel):
     page: int
     pageSize: int
     totalCount: int
+    totalPages: int
     data: list[UserSchema]
 
     class Config:

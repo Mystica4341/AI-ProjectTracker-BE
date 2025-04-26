@@ -49,6 +49,7 @@ class TaskPaginationSchema(BaseModel):
   page: int
   pageSize: int
   totalCount: int
+  totalPages: int
   data: list[TaskSchema]
 
   class Config:

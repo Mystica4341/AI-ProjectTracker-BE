@@ -19,10 +19,14 @@ def getUsersPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
     # get total count
     totalCount = db.query(User).count()
 
+    # get total pages
+    totalPages = (totalCount + pageSize - 1) // pageSize
+
     return {
             "page": page,
             "pageSize": pageSize,
             "totalCount": totalCount,
+            "totalPages": totalPages,
             "data": users
         }
 
@@ -100,7 +104,7 @@ def updateUser(db: Session, id: int, username: str, fullname: str, email: str, p
     user.Username = username
     user.Fullname = fullname
     user.Email = email
-    user.Password = password
+    user.Password = hashPassword(password)
     user.PhoneNumber = phone_number
     user.Role = role
     user.Permission = permission

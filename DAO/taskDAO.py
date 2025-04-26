@@ -20,6 +20,9 @@ def getTasksPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
   # get total count
   totalCount = db.query(Task).count()
 
+  # get total pages
+  totalPages = (totalCount + pageSize - 1) // pageSize
+
   # append and format data
   for t in tasks:
     project = projectDAO.getProjectById(db, t.IdProject)
@@ -30,6 +33,7 @@ def getTasksPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
           "page": page,
           "pageSize": pageSize,
           "totalCount": totalCount,
+          "totalPages": totalPages,
           "data": tasks
         }
 

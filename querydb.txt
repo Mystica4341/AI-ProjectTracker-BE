@@ -10,7 +10,8 @@ CREATE TABLE Users (
     Email NVARCHAR(100) UNIQUE,
     Password NVARCHAR(255),
     Role NVARCHAR(50),
-    Permission NVARCHAR(MAX) NULL
+    Permission NVARCHAR(MAX) NULL,
+    ImageURL NVARCHAR(100)
 );
 
 CREATE TABLE Projects (
@@ -31,6 +32,13 @@ CREATE TABLE ProjectMembers (
     FOREIGN KEY (IdUser) REFERENCES Users(IdUser),
     FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
 );
+
+CREATE TABLE ProjectStorage(
+    IdStorage INT IDENTITY(1,1) PRIMARY KEY,
+    IdProject INT,
+    StorageURL NVARCHAR(100),
+    FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
+)
 
 CREATE TABLE Tasks (
     IdTask INT IDENTITY(1,1) PRIMARY KEY,
@@ -60,19 +68,25 @@ CREATE TABLE ChatHistory (
 );
 
 INSERT INTO Users (Username, Fullname, PhoneNumber, Email, Password, Role, Permission)
-VALUES (N'john_doe', N'John Doe', '123456789', 'john@example.com', 'hashed_password', N'Admin', N'Full Access');
+VALUES (N'Admin', N'Admin', '0900023213', 'Admin@example.com', NULL, N'Admin', N'Full Access'),
+        (N'johnDoe', N'John Doe', '0900023213', 'John@example.com', NULL, N'User', N'none');
 
 INSERT INTO Projects (ProjectName, DateCreate, Manager, Status, Priority)
-VALUES (N'Project A', '24/3/2025', 1, N'Active', N'High');
+VALUES (N'Project A', '24/3/2025', NUll, N'Active', N'High'),
+        (N'Project B', '25/4/2025', NUll, N'Active', N'Medium');
 
 INSERT INTO ProjectMembers (IdUser, UserRole, IdProject)
-VALUES (1, N'Developer', 1);
+VALUES (2, N'Developer', 1)
+        (2, N'Tester', 2);
 
 INSERT INTO Tasks (Title, Status, DueDate, Priority, IdProject)
-VALUES (N'Task 1', N'Pending', '10/4/2025', N'High', 1);
+VALUES (N'Task 1', N'Pending', '10/4/2025', N'High', 1),
+        (N'Task 2', N'Pending', '12/4/2025', N'Medium', 1);
 
 INSERT INTO ToDos (IdProjectMember, IdTask)
-VALUES (1, 1);
+VALUES (1, 1),
+        (1, 2),
+        (2, 2);
 
 INSERT INTO ChatHistory (Context, Title, IdUser)
 VALUES (N'Discussion about Project A', N'Project A Meeting', 1);
