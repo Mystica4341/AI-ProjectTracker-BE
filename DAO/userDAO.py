@@ -82,7 +82,7 @@ def createUser(db: Session, username: str, fullname: str, email: str, password: 
     db.refresh(user)
     return user
 
-def updateUser(db: Session, id: int, username: str, fullname: str, email: str, password: str, phone_number: str, role: str, permission: str):
+def updateUser(db: Session, id: int, username: str, fullname: str, email: str, password: str, phone_number: str, role: str = None, permission: str = None):
     try:
       user = getUserById(db, id)
     except HTTPException as e:
@@ -108,6 +108,28 @@ def updateUser(db: Session, id: int, username: str, fullname: str, email: str, p
     user.PhoneNumber = phone_number
     user.Role = role
     user.Permission = permission
+    db.commit()
+    db.refresh(user)
+    return user
+
+def updateUserPassword(db: Session, id: int, password: str):
+    try:
+      user = getUserById(db, id)
+    except HTTPException as e:
+      raise e
+
+    user.Password = hashPassword(password)
+    db.commit()
+    db.refresh(user)
+    return user
+
+def updateProfileImage(db: Session, id: int, imageURL: str):
+    try:
+      user = getUserById(db, id)
+    except HTTPException as e:
+      raise e
+
+    user.ImageUrl = imageURL
     db.commit()
     db.refresh(user)
     return user

@@ -62,6 +62,20 @@ def updateUser(id: int, user: UserUpdateSchema , db: Session = Depends(get_db)):
     return userDAO.updateUser(db, id, user.Username, user.Username, user.Email, user.Password, user.PhoneNumber, user.Role, user.Permission)
   except HTTPException as e:
     raise e
+  
+@router.put("/password/{id}", response_model=UserSchema)
+def updateUserPassword(id: int, password: str, db: Session = Depends(get_db)):
+  try:
+    return userDAO.updateUserPassword(db, id, password)
+  except HTTPException as e:
+    raise e
+  
+@router.put("/image/{id}", response_model=UserSchema)
+def updateUserImage(id: int, image: str, db: Session = Depends(get_db)):
+  try:
+    return userDAO.updateProfileImage(db, id, image)
+  except HTTPException as e:
+    raise e
 
 @router.delete("/{id}")
 def deleteUser(id: int, db: Session = Depends(get_db)):

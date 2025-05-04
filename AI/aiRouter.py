@@ -1,6 +1,6 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
-from database.py import qdrant_client
+from database import qdrant_client
 from datasets import load_dataset
 from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from haystack.components.embedders import HuggingFaceAPIDocumentEmbedder, HuggingFaceAPITextEmbedder
@@ -14,8 +14,6 @@ from haystack.components.converters import DOCXToDocument
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
-
-
 
 #initialize Qdrant db doc
 def storeDocs(idProject: str):

@@ -2,6 +2,8 @@ create database TrackingWebsite
 
 use TrackingWebsite
 
+drop table ChatHistory, Todos, Tasks, ProjectStorage, ProjectMembers, Projects, Users
+
 CREATE TABLE Users (
     IdUser INT IDENTITY(1,1) PRIMARY KEY,
     Username NVARCHAR(50) UNIQUE,
@@ -69,14 +71,14 @@ CREATE TABLE ChatHistory (
 
 INSERT INTO Users (Username, Fullname, PhoneNumber, Email, Password, Role, Permission)
 VALUES (N'Admin', N'Admin', '0900023213', 'Admin@example.com', NULL, N'Admin', N'Full Access'),
-        (N'johnDoe', N'John Doe', '0900023213', 'John@example.com', NULL, N'User', N'none');
+        (N'johnDoe', N'John Doe', '0902023213', 'John@example.com', NULL, N'User', N'none');
 
 INSERT INTO Projects (ProjectName, DateCreate, Manager, Status, Priority)
 VALUES (N'Project A', '24/3/2025', NUll, N'Active', N'High'),
         (N'Project B', '25/4/2025', NUll, N'Active', N'Medium');
 
 INSERT INTO ProjectMembers (IdUser, UserRole, IdProject)
-VALUES (2, N'Developer', 1)
+VALUES (2, N'Developer', 1),
         (2, N'Tester', 2);
 
 INSERT INTO Tasks (Title, Status, DueDate, Priority, IdProject)
