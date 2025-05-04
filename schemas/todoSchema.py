@@ -35,6 +35,7 @@ class TodoPaginationSchema(BaseModel):
   page: int
   pageSize: int
   totalCount: int
+  totalPages: int
   data: list[TodoSchema]
 
   class Config:

@@ -13,4 +13,4 @@ class User(Base):
     Role = Column(String, default="User")
     Permission = Column(String, default="none")
     PhoneNumber = Column(String)
-    # ImageUrl = Column(String)
+    ImageUrl = Column(String)

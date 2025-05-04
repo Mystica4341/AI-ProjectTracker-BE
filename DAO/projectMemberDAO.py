@@ -25,6 +25,9 @@ def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTer
   # get total count
   totalCount = db.query(ProjectMember).count()
 
+  # get total pages
+  totalPages = (totalCount + pageSize - 1) // pageSize
+
   # append and format data
   for member in projectMembers:
     project = projectDAO.getProjectById(db, member.IdProject)
@@ -38,6 +41,7 @@ def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTer
           "page": page,
           "pageSize": pageSize,
           "totalCount": totalCount,
+          "totalPages": totalPages,
           "data": projectMembers
       }
 

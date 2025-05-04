@@ -21,6 +21,9 @@ def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
   # get total count
   totalCount = db.query(Todo).count()
 
+  # get total pages
+  totalPages = (totalCount + pageSize - 1) // pageSize
+
   # append and format data
   for t in todos:
     projectMember = getProjectMemberDetail(db, t.IdProjectMember)
@@ -38,6 +41,7 @@ def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
           "page": page,
           "pageSize": pageSize,
           "totalCount": totalCount,
+          "totalPages": totalPages,
           "data": todos
         }
 

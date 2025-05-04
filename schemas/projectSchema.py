@@ -52,6 +52,7 @@ class ProjectPagination(BaseModel):
     page: int
     pageSize: int
     totalCount: int
+    totalPages: int
     data: list[ProjectSchema]
 
     class Config:

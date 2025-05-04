@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 import uvicorn
 from typing import Annotated
 from database import engine, Base
-from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter
+from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter, projectStorageRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
@@ -29,11 +29,17 @@ async def root():
 async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
     return {"token": token}
 
+# Include the authentication router
+app.include_router(authRouter.router, prefix="/api", tags=["auth"])
+
 # Include the user router
 app.include_router(userRouter.router, prefix="/api/users", tags=["users"])
 
 # Include the project router
 app.include_router(projectRouter.router, prefix="/api/projects", tags=["projects"])
+
+# Include the project storage router
+app.include_router(projectStorageRouter.router, prefix="/api/storages", tags=["storages"])
 
 # Include the task router
 app.include_router(taskRouter.router, prefix="/api/tasks", tags=["tasks"])
@@ -43,9 +49,6 @@ app.include_router(projectMemberRouter.router, prefix="/api/members", tags=["mem
 
 # Include the todo router
 app.include_router(todoRouter.router, prefix="/api/todos", tags=["todos"])
-
-# Include the authentication router
-app.include_router(authRouter.router, prefix="/api", tags=["auth"])
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

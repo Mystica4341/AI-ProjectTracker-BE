@@ -23,9 +23,9 @@ async def login(formData: OAuth2PasswordRequestForm = Depends(), db: Session = D
       detail="Incorrect username or password",
       headers={"WWW-Authenticate": "Bearer"},
     )
-  Token = createAccessToken(data={"sub": user.Username, "Role": user.Role})
+  Token = createAccessToken(data={"sub": user.Username, "Role": user.Role, "IdUser": user.IdUser})
   return {"access_token": Token, "token_type": "bearer"}
 
 @router.get("/protected-route")
 def protected_route(current_user: dict = Depends(getCurrentUser)):
-    return current_user["Role"]
+    return {"username": current_user["Username"], "role": current_user["Role"], "IdUser": current_user["IdUser"]}
