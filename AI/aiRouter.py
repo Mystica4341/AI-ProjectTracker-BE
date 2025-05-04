@@ -1,9 +1,7 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
-import tokenS.py as secTokenS
 from database.py import qdrant_client
 from datasets import load_dataset
-import time
 from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from haystack.components.embedders import HuggingFaceAPIDocumentEmbedder, HuggingFaceAPITextEmbedder
 from haystack.components.converters import PyPDFToDocument
@@ -22,8 +20,8 @@ from haystack.components.writers import DocumentWriter
 #initialize Qdrant db doc
 def storeDocs(idProject: str):
     return QdrantDocumentStore(
-        url= secTokenS.secret_hostqdrant + ":6333", 
-        api_key=secTokenS.secret_api,                                                             
+        url= "49e3e764-01cb-441e-8910-b4bcc220aa17.us-east-1-0.aws.cloud.qdrant.io:6333", 
+        api_key='P7gRj69HTdm-k4TYChSo-KWyXoUDuYI4Jf3II4qRg-zqJKaE0IytLw',                                                             
         index="collection" + idProject,                                                          
         similarity="cosine",                                                            
         embedding_dim=768,                                                              
@@ -37,12 +35,12 @@ def createQdrant(idProject: str):
 def embedderDoc():
     return HuggingFaceAPIDocumentEmbedder(api_type="serverless_inference_api",
                                     api_params={"model": "sentence-transformers/bert-base-nli-mean-tokens"},
-                                    token=secTokenS.secret_HFtoken)
+                                    token='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')
 
 def embedderText():
     return HuggingFaceAPITextEmbedder(api_type="serverless_inference_api",
                                     api_params={"model": "sentence-transformers/bert-base-nli-mean-tokens"},
-                                    token=secTokenS.secret_HFtoken)
+                                    token='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')
 
 def retriever(idProject: str):
     return QdrantEmbeddingRetriever(storeDocs(idProject))
@@ -62,7 +60,7 @@ def genAnswer():
     Answer:
     """
     prompt_builder = PromptBuilder(template=template)
-    generator = GoogleAIGeminiGenerator(model="gemini-pro", api_key=secTokenS.gemini_key)
+    generator = GoogleAIGeminiGenerator(model="gemini-pro", api_key="AIzaSyCjDrnrO_gxtKV6873eotq35attC82y7ZA")
     return prompt_builder,generator
 
 def pipelineAddData():
