@@ -2,6 +2,14 @@ sqlalchemy
 pyodbc 
 fastapi[standard] 
 uvicorn 
+nest-asyncio 
+pyngrok
 python-jose 
 passlib 
 bcrypt
+pypdf
+haystack-ai
+datasets>=2.6.1
+qdrant_client 
+qdrant-haystack
+google-ai-haystack

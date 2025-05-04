@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from models.project import Project
 from fastapi import HTTPException
+from aiRouter.py import createQdrant
 
 def getProjectsPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(Project)
@@ -36,6 +37,7 @@ def createProject(db: Session, ProjectName: str, Manager: int, Status: str, Prio
   db.add(project)
   db.commit()
   db.refresh(project)
+  createQdrant(project.id)
   return project
 
 def updateProject(db: Session, id: int, ProjectName: str, DateCreate: str, Manager: int, Status: str, Priority: str):
