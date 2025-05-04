@@ -49,7 +49,7 @@ def getCurrentUser(token: str = Depends(oauth2_scheme)):
       Username: str = payload.get("sub")
       if Username is None:
           raise HTTPException(status_code=401, detail="Invalid token")
-      return {"Username": Username, "Role": payload.get("Role")}
+      return {"Username": Username, "Role": payload.get("Role"), "idUser": payload.get("IdUser")}
   except JWTError:
       raise HTTPException(status_code=401, detail="Invalid token")
 
