@@ -14,6 +14,9 @@ from haystack.components.converters import DOCXToDocument
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
+from fastapi import APIRouter
+
+router = APIRouter()
 
 #initialize Qdrant db doc
 def storeDocs(idProject: str):
@@ -89,12 +92,14 @@ def writeDoc(docs):
     except Exception as e:
         print('Error: ', e)
 
-def uploadDocs():
-    return 0
+# def uploadDocs():
+#     return 0
 
-def writeDocToQdrant():
-    return 0
-def qa():
+# def writeDocToQdrant():
+#     return 0
+
+@router.post("/ask")
+async def qa():
     question = input("Your question: ")
     response = pipelineAddData().run({"text_embedder": {"text": question}, "prompt_builder": {"question": question}})
     return '"Answer"'+ ':' + response["llm"]["replies"][0]
