@@ -3,6 +3,7 @@ import uvicorn
 from typing import Annotated
 from database import engine, Base
 from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter, projectStorageRouter
+from AI import aiRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
@@ -49,6 +50,9 @@ app.include_router(projectMemberRouter.router, prefix="/api/members", tags=["mem
 
 # Include the todo router
 app.include_router(todoRouter.router, prefix="/api/todos", tags=["todos"])
+
+# Include the AI router
+app.include_router(aiRouter.router, prefix="/api/ai", tags=["AI"])
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
