@@ -108,4 +108,6 @@ def writeDoc(docs):
 async def qa(idProject: str):
     question = input("Your question: ")
     response = pipelineAns(idProject).run({"text_embedder": {"text": question}, "prompt_builder": {"question": question}})
-    return '"Answer"'+ ':' + response["llm"]["replies"][0]
+    return {
+        "Answer": response["llm"]["replies"][0]
+    }
