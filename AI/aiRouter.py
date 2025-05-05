@@ -6,7 +6,6 @@ from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from haystack.components.embedders import HuggingFaceAPIDocumentEmbedder, HuggingFaceAPITextEmbedder
 from haystack.components.converters import PyPDFToDocument
 from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-from haystack.components.generators import HuggingFaceAPIGenerator
 from haystack_integrations.components.generators.google_ai import GoogleAIGeminiGenerator
 from haystack.components.builders import PromptBuilder
 from haystack import Pipeline
@@ -73,7 +72,7 @@ def pipelineAddData():
     add_data_pipeline.add_component("cleaner", DocumentCleaner(remove_empty_lines=False, remove_extra_whitespaces=False))
     add_data_pipeline.add_component("splitter", DocumentSplitter(split_by="passage", split_length=1))
     add_data_pipeline.add_component("embedder", embedderDoc())
-    add_data_pipeline.add_component("writer", DocumentWriter(storeDocs())) 
+    add_data_pipeline.add_component("writer", DocumentWriter(storeDocs()))
 
     # Now, connect the components to each other
     add_data_pipeline.connect("converter", "cleaner")
@@ -82,12 +81,22 @@ def pipelineAddData():
     add_data_pipeline.connect("embedder", "writer")
     return add_data_pipeline
 
+def pipelineAns(idProject: str):
+    query_pipeline = Pipeline()
+    #components
+    query_pipeline.add_component("text_embedder",embedderText())
+    query_pipeline.add_component("retriever", retriever(idProject))
+    query_pipeline.add_component("prompt_builder", genAnswer[0])
+    query_pipeline.add_component("llm",genAnswer[1])
+    #connect
+    query_pipeline.connect("text_embedder","retriever.query_embedding")
+    query_pipeline.connect("retriever.documents","prompt_builder.documents")
+    query_pipeline.connect("prompt_builder.prompt", "llm")
+    return query_pipeline
 
 def writeDoc(docs):
-    embeddedDocs = embedderDoc().run(docs)
-    document_store = storeDocs()
     try:
-        document_store.write_documents(embeddedDocs['documents'])
+        pipelineAddData().run({"converter" : {"sources": [docs] , "meta" : {"file_name": [docs]}}})
         print(' Documents wrote to the vectorDB Successfully')
     except Exception as e:
         print('Error: ', e)
@@ -95,11 +104,8 @@ def writeDoc(docs):
 # def uploadDocs():
 #     return 0
 
-# def writeDocToQdrant():
-#     return 0
-
 @router.post("/ask")
-async def qa():
+async def qa(idProject: str):
     question = input("Your question: ")
-    response = pipelineAddData().run({"text_embedder": {"text": question}, "prompt_builder": {"question": question}})
+    response = pipelineAns(idProject).run({"text_embedder": {"text": question}, "prompt_builder": {"question": question}})
     return '"Answer"'+ ':' + response["llm"]["replies"][0]
