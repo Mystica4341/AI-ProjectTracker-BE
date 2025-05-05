@@ -14,54 +14,57 @@ from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
 from fastapi import APIRouter
+from pydantic import BaseModel
+from Secret import HFToken, GeminiToken
 
 router = APIRouter()
 
+class Question(BaseModel):
+    query: str
+
 #initialize Qdrant db doc
-def storeDocs(idProject: str):
+def storeDocs(idProject: int):
     return QdrantDocumentStore(
         url= "49e3e764-01cb-441e-8910-b4bcc220aa17.us-east-1-0.aws.cloud.qdrant.io:6333", 
         api_key='P7gRj69HTdm-k4TYChSo-KWyXoUDuYI4Jf3II4qRg-zqJKaE0IytLw',                                                             
-        index="collection" + idProject,                                                          
+        index="collection" + str(idProject),                                                          
         similarity="cosine",                                                            
         embedding_dim=768,                                                              
     )
 
-def createQdrant(idProject: str):
-    if not qdrant_client.collection_exists("collection" + idProject):
-        qdrant_client.create_collection(collection_name= "collection" + idProject,
+def createQdrant(idProject: int):
+    if not qdrant_client.collection_exists("collection" + str(idProject)):
+        qdrant_client.create_collection(collection_name= "collection" + str(idProject),
                                         vectors_config=VectorParams(size=768, distance=Distance.COSINE))
 
 def embedderDoc():
     return HuggingFaceAPIDocumentEmbedder(api_type="serverless_inference_api",
                                     api_params={"model": "sentence-transformers/bert-base-nli-mean-tokens"},
-                                    token='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')
+                                    token=HFToken)
 
 def embedderText():
     return HuggingFaceAPITextEmbedder(api_type="serverless_inference_api",
                                     api_params={"model": "sentence-transformers/bert-base-nli-mean-tokens"},
-                                    token='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')
+                                    token=HFToken)
 
 def retriever(idProject: str):
     return QdrantEmbeddingRetriever(storeDocs(idProject))
 
-def genAnswer():
-    template = """
-    Using the information contained in the context that match with the Question, provide a comprehensive and moderate answer for the Question.
-    Translate answer if possible
-    Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide
+template = """
+Using the information contained in the context that match with the Question, provide a comprehensive and moderate answer for the Question.
+Translate answer if possible
+Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide
 
-    Context:
-    {% for document in documents %}
-        {{ document.content }}
-    {% endfor %}
+Context:
+{% for document in documents %}
+    {{ document.content }}
+{% endfor %}
 
-    Question: {{question}}
-    Answer:
-    """
-    prompt_builder = PromptBuilder(template=template)
-    generator = GoogleAIGeminiGenerator(model="gemini-pro", api_key="AIzaSyCjDrnrO_gxtKV6873eotq35attC82y7ZA")
-    return prompt_builder,generator
+Question: {{question}}
+Answer:
+"""
+prompt_builder = PromptBuilder(template=template)
+generator = GoogleAIGeminiGenerator(model="gemini-pro", api_key=GeminiToken)
 
 def pipelineAddData():
     # Initialize pipeline
@@ -86,8 +89,8 @@ def pipelineAns(idProject: str):
     #components
     query_pipeline.add_component("text_embedder",embedderText())
     query_pipeline.add_component("retriever", retriever(idProject))
-    query_pipeline.add_component("prompt_builder", genAnswer[0])
-    query_pipeline.add_component("llm",genAnswer[1])
+    query_pipeline.add_component("prompt_builder", prompt_builder)
+    query_pipeline.add_component("llm", generator)
     #connect
     query_pipeline.connect("text_embedder","retriever.query_embedding")
     query_pipeline.connect("retriever.documents","prompt_builder.documents")
@@ -105,9 +108,8 @@ def writeDoc(docs):
 #     return 0
 
 @router.post("/ask")
-async def qa(idProject: str):
-    question = input("Your question: ")
-    response = pipelineAns(idProject).run({"text_embedder": {"text": question}, "prompt_builder": {"question": question}})
+async def ask(idProject: int, question: Question):
+    response = pipelineAns(idProject).run({"text_embedder": {"text": question.query}, "prompt_builder": {"question": question.query}})
     return {
         "Answer": response["llm"]["replies"][0]
     }
