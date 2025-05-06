@@ -1,7 +1,6 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from database import qdrant_client
-from datasets import load_dataset
 from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder, SentenceTransformersTextEmbedder
 from haystack.components.converters import PyPDFToDocument
@@ -16,6 +15,7 @@ from haystack.components.writers import DocumentWriter
 from fastapi import APIRouter
 from pydantic import BaseModel
 from haystack.utils import Secret
+from AI import Secret
 
 router = APIRouter()
 
@@ -42,7 +42,7 @@ class Question(BaseModel):
 def storeDocs(idProject: int):
     return QdrantDocumentStore(
         url="https://49e3e764-01cb-441e-8910-b4bcc220aa17.us-east-1-0.aws.cloud.qdrant.io:6333",
-        api_key= Secret.from_token('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.cN50fv2LcwMkzATXPXl8vAWTtjNtfqwUZUeuX4JVF_k'),
+        api_key= Secret.QdrantToken,
         index="collection" + str(idProject),
         similarity="cosine",
         embedding_dim=768,
@@ -80,7 +80,7 @@ Question: {{question}}
 Answer:
 """
 prompt_builder = PromptBuilder(template=template)
-generator = GoogleAIGeminiGenerator(model="gemini-2.0-flash", api_key=GeminiToken)
+generator = GoogleAIGeminiGenerator(model="gemini-2.0-flash", api_key=Secret.GeminiToken)
 
 def pipelineAddData(idProject: int):
     # Initialize pipeline
