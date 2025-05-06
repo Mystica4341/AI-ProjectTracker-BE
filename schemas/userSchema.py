@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from enum import Enum
 from typing import Optional
 
 # Define the User schema and add config for ORM
@@ -45,6 +46,11 @@ class UserLoginSchema(BaseModel):
     
     class Config:
         orm_mode = True
+        
+class RoleEnum(str, Enum):
+    SuperAdmin = "Super Admin"
+    Admin = "Admin"
+    User = "User"
 
 class UserPagination(BaseModel):
     page: int

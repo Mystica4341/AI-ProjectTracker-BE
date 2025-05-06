@@ -4,7 +4,7 @@ from database import SessionLocal
 from DAO import userDAO
 from authentication import authorize
 # import Schema
-from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema, UserPagination
+from schemas.userSchema import UserCreateSchema, UserUpdateSchema, UserSchema, UserPagination, RoleEnum
 
 router = APIRouter()
 
@@ -51,6 +51,11 @@ def getUserByUsername(username: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=UserSchema)
 def createUser(user: UserCreateSchema, db: Session = Depends(get_db)):
+  if user.Role and user.Role not in RoleEnum.__members__.values():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status: {user.Role}. Must be one of [Super Admin, Admin, User]."
+        )
   try:
     return userDAO.createUser(db, user.Username, user.Fullname, user.Email, user.Password, user.PhoneNumber, user.Role, user.Permission)
   except HTTPException as e:

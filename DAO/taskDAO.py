@@ -53,29 +53,30 @@ def getTaskById(db: Session, id: int):
 
   return task
 
-def createTask(db: Session, title: str, due_date: str, priority: str, id_project: int):
+def createTask(db: Session, title: str, dueDate: str, priority: str, idProject: int):
   try:
     # check if project exists
-    existProject(db, id_project)
+    existProject(db, idProject)
   except HTTPException as e:
     raise e
-  task = Task(Title=title, DueDate=due_date, Priority=priority, IdProject=id_project)
+  task = Task(Title=title, DueDate=dueDate, Priority=priority, IdProject=idProject)
   db.add(task)
   db.commit()
   db.refresh(task)
   return task
 
-def updateTask(db: Session, id: int, title: str, status: str, due_date: str, priority: str, id_project: int):
+def updateTask(db: Session, id: int, title: str, status: str, dateCreate: str, dueDate: str, priority: str, idProject: int):
   try:
-    existProject(db, id_project)
+    existProject(db, idProject)
     task = getTaskById(db, id)
   except HTTPException as e:
     raise e
   task.Title = title
   task.Status = status
-  task.DueDate = due_date
+  # task.DateCreate = dateCreate
+  task.DueDate = dueDate
   task.Priority = priority
-  task.IdProject = id_project
+  task.IdProject = idProject
   db.commit()
   db.refresh(task)
   return task

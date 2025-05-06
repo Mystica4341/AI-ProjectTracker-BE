@@ -49,6 +49,7 @@ CREATE TABLE Tasks (
     IdTask INT IDENTITY(1,1) PRIMARY KEY,
     Title NVARCHAR(200),
     Status NVARCHAR(20) CHECK (Status IN ('Pending', 'In Progress', 'Completed', 'Blocked')) NOT NULL DEFAULT 'Pending',
+    DateCreate NVARCHAR(20),
     DueDate NVARCHAR(20),
     Priority NVARCHAR(10) CHECK (Priority IN ('Low', 'Medium', 'High')) NOT NULL DEFAULT 'Medium',
     IdProject INT,

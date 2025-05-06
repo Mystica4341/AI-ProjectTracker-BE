@@ -36,24 +36,24 @@ def getProjectById(db: Session, id: int):
     raise HTTPException(status_code=404, detail="Project not found")
   return project
 
-def createProject(db: Session, ProjectName: str, Manager: int, Status: str, Priority: str):
-  project = Project(ProjectName=ProjectName, Manager=Manager, Status=Status, Priority=Priority)
+def createProject(db: Session, projectName: str, manager: int, status: str, priority: str):
+  project = Project(ProjectName=projectName, Manager=manager, Status=status, Priority=priority)
   db.add(project)
   db.commit()
   db.refresh(project)
   aiRouter.createQdrant(project.id)
   return project
 
-def updateProject(db: Session, id: int, ProjectName: str, DateCreate: str, Manager: int, Status: str, Priority: str):
+def updateProject(db: Session, id: int, projectName: str, dateCreate: str, manager: int, status: str, priority: str):
   try:
     project = getProjectById(db, id)
   except HTTPException as e:
     raise e
-  project.ProjectName = ProjectName
-  # project.DateCreate = DateCreate
-  project.Manager = Manager
-  project.Status = Status
-  project.Priority = Priority
+  project.ProjectName = projectName
+  # project.DateCreate = dateCreate
+  project.Manager = manager
+  project.Status = status
+  project.Priority = priority
   db.add(project)
   db.commit()
   db.refresh(project)

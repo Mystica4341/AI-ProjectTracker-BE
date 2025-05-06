@@ -65,7 +65,7 @@ def updateTask(id: int, task: TaskUpdateSchema, db: Session = Depends(get_db)):
         )
 
     try:
-        return taskDAO.updateTask(db, id, task.Title, task.Status, task.DueDate, task.Priority, task.IdProject)
+        return taskDAO.updateTask(db, id, task.Title, task.Status, None, task.DueDate, task.Priority, task.IdProject)
     except HTTPException as e:
         raise e
 
