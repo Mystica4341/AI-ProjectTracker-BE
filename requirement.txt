@@ -13,3 +13,5 @@ datasets>=2.6.1
 qdrant_client 
 qdrant-haystack
 google-ai-haystack
+docx
+transformers
