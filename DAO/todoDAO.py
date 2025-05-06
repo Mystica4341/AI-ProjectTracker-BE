@@ -9,8 +9,8 @@ def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
   query = db.query(Todo)
 
   # filter by search term
-  if searchTerm:
-    query = query.filter(Todo.Title.ilike(f"%{searchTerm}%") | Todo.Status.ilike(f"%{searchTerm}%") | Todo.Priority.ilike(f"%{searchTerm}%"))
+  # if searchTerm:
+  #   query = query.filter(Todo.Title.ilike(f"%{searchTerm}%") | Todo.Status.ilike(f"%{searchTerm}%") | Todo.Priority.ilike(f"%{searchTerm}%"))
 
   # sorting
   query = query.order_by(Todo.IdTodo.asc())
