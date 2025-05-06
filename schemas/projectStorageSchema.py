@@ -7,6 +7,9 @@ class ProjectStorageSchema(BaseModel):
   IdProject: int
   ProjectName: Optional[str] = None
   StorageURL: str
+  Filename: str
+  Size: int
+  uploadDate: str
 
   class Config:
     orm_mode = True
@@ -14,12 +17,19 @@ class ProjectStorageSchema(BaseModel):
 class ProjectStorageCreateSchema(BaseModel):
   IdProject: int
   StorageURL: str
+  Filename: str
+  Size: int
+  uploadDate: str
 
   class Config:
     orm_mode = True
 
 class ProjectStorageUpdateSchema(BaseModel):
   IdProject: int
+  StorageURL: str
+  Filename: str
+  Size: int
+  uploadDate: str
 
   class Config:
     orm_mode = True

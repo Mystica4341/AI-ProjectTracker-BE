@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from DAO import taskDAO
+from DAO import projectStorageDAO
 from authentication import authorize
 # import Schema
 from schemas.projectStorageSchema import ProjectStorageSchema, ProjectStorageCreateSchema, ProjectStorageUpdateSchema, ProjectStoragePaginationSchema
@@ -24,34 +24,34 @@ def getProjectStoragesPagination(
   user: dict = Depends(authorize("Admin"))
 ):
   try:
-    return taskDAO.getProjectStoragesPagination(db, page, pageSize, searchTerm)
+    return projectStorageDAO.getProjectStoragesPagination(db, page, pageSize, searchTerm)
   except HTTPException as e:
     raise e
 
 @router.get("/{id}", response_model=ProjectStorageSchema)
 def getProjectStorageByIdProject(id: int, db: Session = Depends(get_db)):
   try:
-    return taskDAO.getProjectStorageByIdProject(db, id)
+    return projectStorageDAO.getProjectStorageByIdProject(db, id)
   except HTTPException as e:
     raise e
 
 @router.post("/", response_model=ProjectStorageSchema)
 def createProjectStorage(projectStorage: ProjectStorageCreateSchema, db: Session = Depends(get_db)):
   try:
-    return taskDAO.createProjectStorage(db, projectStorage.IdProject, projectStorage.StorageUrl)
+    return projectStorageDAO.createProjectStorage(db, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size, projectStorage.uploadDate)
   except HTTPException as e:
     raise e
 
 @router.put("/{id}", response_model=ProjectStorageSchema)
 def updateProjectStorage(id: int, projectStorage: ProjectStorageUpdateSchema, db: Session = Depends(get_db)):
   try:
-    return taskDAO.updateProjectStorage(db, id, projectStorage.StorageUrl)
+    return projectStorageDAO.updateProjectStorage(db, id, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size, projectStorage.uploadDate)
   except HTTPException as e:
     raise e
 
 @router.delete("/{id}")
 def deleteProjectStorage(id: int, db: Session = Depends(get_db)):
   try:
-    return taskDAO.deleteProjectStorage(db, id)
+    return projectStorageDAO.deleteProjectStorage(db, id)
   except HTTPException as e:
     raise e

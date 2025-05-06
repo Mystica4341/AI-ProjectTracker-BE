@@ -11,7 +11,7 @@ CREATE TABLE Users (
     PhoneNumber NVARCHAR(20) UNIQUE,
     Email NVARCHAR(100) UNIQUE,
     Password NVARCHAR(255),
-    Role NVARCHAR(50),
+    Role NVARCHAR(20) CHECK (Priority IN ('Super Admin', 'Admin', 'User')) NOT NULL DEFAULT 'User',
     Permission NVARCHAR(MAX) NULL,
     ImageURL NVARCHAR(100)
 );
@@ -39,6 +39,9 @@ CREATE TABLE ProjectStorage(
     IdStorage INT IDENTITY(1,1) PRIMARY KEY,
     IdProject INT,
     StorageURL NVARCHAR(100),
+    Filename NVARCHAR(100),
+    Size INT,
+    UploadDate NVARCHAR(20),
     FOREIGN KEY (IdProject) REFERENCES Projects(IdProject) ON DELETE CASCADE
 )
 
@@ -70,25 +73,60 @@ CREATE TABLE ChatHistory (
 );
 
 INSERT INTO Users (Username, Fullname, PhoneNumber, Email, Password, Role, Permission)
-VALUES (N'Admin', N'Admin', '0900023213', 'Admin@example.com', NULL, N'Admin', N'Full Access'),
-        (N'johnDoe', N'John Doe', '0902023213', 'John@example.com', NULL, N'User', N'none');
+VALUES (N'sa', N'Super Admin', '0902023213', 'sa@example.com', NULL, N'Super Admin', N'Full Access'),
+        (N'admin', N'Admin', '09020235613', 'admin@example.com', NULL, N'Admin', N'Full Access'),
+        (N'johnDoe', N'John Doe', '0983282145', 'john@example.com', NULL, N'User', N'none'),
+        (N'steve', N'Steve', '0989272145', 'steve@example.com', NULL, N'User', N'none'),
+        (N'tientai', N'Tien Tai', '0933272146', 'tientai@example.com', NULL, N'User', N'none'),
+        (N'phuctrong', N'Phuc Trong', '0935772616', 'phuctrong@example.com', NULL, N'User', N'none'),
+        (N'siphu', N'Si Phu', '0835472416', 'siphu@example.com', NULL, N'User', N'none'),
+        (N'tantrung', N'Tan Trung', '0779354724', 'tantrung@example.com', NULL, N'User', N'none'),
+        (N'dangkhoa', N'Dang Khoa', '0735472857', 'dangkhoa@example.com', NULL, N'User', N'none'),
+        (N'quangan', N'Quang An', '0838534754', 'quangan@example.com', NULL, N'User', N'none'),
 
 INSERT INTO Projects (ProjectName, DateCreate, Manager, Status, Priority)
-VALUES (N'Project A', '24/3/2025', NUll, N'Active', N'High'),
-        (N'Project B', '25/4/2025', NUll, N'Active', N'Medium');
+VALUES (N'Project TrackingWebsite', '24/3/2025', NUll, N'Active', N'High'),
+        (N'Project ManagamentWebsite', '25/4/2025', NUll, N'Active', N'Medium'),
+        (N'Project JobHunterWebsite', '15/5/2025', NUll, N'Active', N'Low'),
+        (N'Project JobPortalWebsite', '15/2/2025', NUll, N'On Hold', N'Low'),
+        (N'Project CookingRecipeWebsite', '17/1/2025', NUll, N'In Progress', N'High'),
 
 INSERT INTO ProjectMembers (IdUser, UserRole, IdProject)
-VALUES (2, N'Developer', 1),
-        (2, N'Tester', 2);
+VALUES (3, N'Frontend Developer', 1),
+        (3, N'Tester', 2),
+        (3, N'UI/UX Designer', 3),
+        (3, N'Backend Developer', 4),
+        (5, N'Tester', 1),
+        (5, N'UI/UX Designer', 2),
+        (5, N'Frontend Developer', 3),
+        (5, N'Business Analysis', 4),
+        (6, N'Frontend Developer', 3),
+        (6, N'Frontend Developer', 2),
+        (6, N'UI/Ux Designer', 1),
+        (7, N'Backend Developer', 3),
+        (7, N'Backend Developer', 1),
+        (10, N'Frontend Developer', 3),
+        (10, N'Frontend Developer', 4),
+        (10, N'Business Analysis', 2),
+        (8, N'AI Researcher', 1),
+        (9, N'Business Analysis', 1),
+        (9, N'Frontend Designer', 4),
 
 INSERT INTO Tasks (Title, Status, DueDate, Priority, IdProject)
 VALUES (N'Task 1', N'Pending', '10/4/2025', N'High', 1),
-        (N'Task 2', N'Pending', '12/4/2025', N'Medium', 1);
+        (N'Task 2', N'Pending', '12/4/2025', N'Medium', 1),
+        (N'Front Page', N'Pending', '17/4/2025', N'High', 2),
+        (N'DashBoard', N'Completed', '30/4/2025', N'High', 2),
+        (N'Rest API', N'In Progress', '30/5/2025', N'Low', 3),
+        (N'Figma', N'Cancelled', '12/4/2025', N'High', 3),
 
 INSERT INTO ToDos (IdProjectMember, IdTask)
 VALUES (1, 1),
         (1, 2),
-        (2, 2);
+        (2, 2),
+        (2, 3),
+        (3, 5),
+        (3, 6);
 
 INSERT INTO ChatHistory (Context, Title, IdUser)
 VALUES (N'Discussion about Project A', N'Project A Meeting', 1);

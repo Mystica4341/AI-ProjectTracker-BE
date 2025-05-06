@@ -8,3 +8,7 @@ class ProjectStorage(Base):
     IdStorage = Column(Integer, primary_key=True, index=True)
     IdProject = Column(Integer)
     StorageUrl = Column(String)
+    Filename = Column(String)
+    Size = Column(Integer)
+    uploadDate = Column(String)
+    

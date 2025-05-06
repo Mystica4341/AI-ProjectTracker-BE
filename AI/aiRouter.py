@@ -36,6 +36,7 @@ docs = [Document(content="Company's name is QNA Corps Ltd."),
 ]
 
 class Question(BaseModel):
+    idProject: int
     query: str
 
 #initialize Qdrant db doc
@@ -82,16 +83,18 @@ Answer:
 prompt_builder = PromptBuilder(template=template)
 generator = GoogleAIGeminiGenerator(model="gemini-2.0-flash", api_key=Secret.GeminiToken)
 
+# Initialize pipeline for adding data
+add_data_pipeline = Pipeline()
 def pipelineAddData(idProject: int):
-    # Initialize pipeline
-    add_data_pipeline = Pipeline()
     # Add components to your pipeline
-
-    add_data_pipeline.add_component("converter",PyPDFToDocument())
-    add_data_pipeline.add_component("cleaner", DocumentCleaner(remove_empty_lines=False, remove_extra_whitespaces=False))
-    add_data_pipeline.add_component("splitter", DocumentSplitter(split_by="passage", split_length=1))
-    add_data_pipeline.add_component("embedder", embedderDoc())
-    add_data_pipeline.add_component("writer", DocumentWriter(storeDocs(idProject)))
+    try:
+        add_data_pipeline.add_component("converter",PyPDFToDocument())
+        add_data_pipeline.add_component("cleaner", DocumentCleaner(remove_empty_lines=False, remove_extra_whitespaces=False))
+        add_data_pipeline.add_component("splitter", DocumentSplitter(split_by="passage", split_length=1))
+        add_data_pipeline.add_component("embedder", embedderDoc())
+        add_data_pipeline.add_component("writer", DocumentWriter(storeDocs(idProject)))
+    except Exception as e:
+        print('Error: ', e)
 
     # Now, connect the components to each other
     add_data_pipeline.connect("converter", "cleaner")
@@ -100,13 +103,18 @@ def pipelineAddData(idProject: int):
     add_data_pipeline.connect("embedder", "writer")
     return add_data_pipeline
 
+# Initialize pipeline for answering questions
+query_pipeline = Pipeline()
+
 def pipelineAns(idProject: int):
-    query_pipeline = Pipeline()
-    #components
-    query_pipeline.add_component("text_embedder",embedderText())
-    query_pipeline.add_component("retriever", retriever(idProject))
-    query_pipeline.add_component("prompt_builder", prompt_builder)
-    query_pipeline.add_component("llm", generator)
+    try:
+        #components
+        query_pipeline.add_component("text_embedder",embedderText())
+        query_pipeline.add_component("retriever", retriever(idProject))
+        query_pipeline.add_component("prompt_builder", prompt_builder)
+        query_pipeline.add_component("llm", generator)
+    except Exception as e:
+        print('Error: ', e)
     #connect
     query_pipeline.connect("text_embedder","retriever.query_embedding")
     query_pipeline.connect("retriever.documents","prompt_builder.documents")
@@ -125,9 +133,9 @@ def writeDoc(idProject: int):
 #     return 0
 
 @router.post("/ask")
-async def ask(idProject: int, question: Question):
-    createQdrant(idProject)
-    response = pipelineAns(idProject).run({"text_embedder": {"text": question.query}, "prompt_builder": {"question": question.query}})
+def ask(question: Question):
+    createQdrant(question.idProject)
+    response = pipelineAns(question.idProject).run({"text_embedder": {"text": question.query}, "prompt_builder": {"question": question.query}})
     return {
         "Answer": response["llm"]["replies"][0]
     }

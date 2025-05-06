@@ -43,30 +43,33 @@ def getProjectStorageByIdProject(db: Session, id: int):
     raise HTTPException(status_code=404, detail="Id Project not found")
   return projectStorage
 
-def createProjectStorage(db: Session, IdProject: int, StorageUrl: str):
+def createProjectStorage(db: Session, idProject: int, storageUrl: str, filename: str, Size: int, uploadDate: str):
   try:
     # check if project exists
-    existProject(db, IdProject)
+    existProject(db, idProject)
   except HTTPException as e:
     raise e
 
-  projectStorage = ProjectStorage(IdProject=IdProject, StorageUrl=StorageUrl)
+  projectStorage = ProjectStorage(IdProject=idProject, StorageUrl=storageUrl, Filename=filename, Size=Size, uploadDate=uploadDate)
   db.add(projectStorage)
   db.commit()
   db.refresh(projectStorage)
   return projectStorage
 
-def updateProjectStorage(db: Session, id: int, id_project: int, StorageUrl: str):
+def updateProjectStorage(db: Session, id: int, idProject: int, storageUrl: str, filename: str, Size: int, uploadDate: str):
   try:
     # check if project exists
-    existProject(db, id_project)
+    existProject(db, idProject)
     # find project storage by Id
     projectStorage = getProjectStorageByIdProject(db, id)
   except HTTPException as e:
     raise e
 
-  projectStorage.IdProject = id_project
-  projectStorage.StorageUrl = StorageUrl
+  projectStorage.IdProject = idProject
+  projectStorage.StorageUrl = storageUrl
+  projectStorage.Filename = filename
+  projectStorage.Size = Size
+  projectStorage.uploadDate = uploadDate
   db.commit()
   db.refresh(projectStorage)
   return projectStorage
