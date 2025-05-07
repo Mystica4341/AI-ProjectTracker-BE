@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -10,7 +10,7 @@ class User(Base):
     Fullname = Column(String)
     Username = Column(String, unique=True, index=True)
     Password = Column(String)
-    Role = Column(String, default="User")
+    Role = Column(Enum("Super Admin", "Admin", "User"), default="User")
     Permission = Column(String, default="none")
     PhoneNumber = Column(String)
     ImageUrl = Column(String)

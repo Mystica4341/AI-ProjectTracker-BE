@@ -63,6 +63,11 @@ def createUser(user: UserCreateSchema, db: Session = Depends(get_db)):
 
 @router.put("/{id}", response_model=UserSchema)
 def updateUser(id: int, user: UserUpdateSchema , db: Session = Depends(get_db)):
+  if user.Role and user.Role not in RoleEnum.__members__.values():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status: {user.Role}. Must be one of [Super Admin, Admin, User]."
+        )
   try:
     return userDAO.updateUser(db, id, user.Username, user.Username, user.Email, user.Password, user.PhoneNumber, user.Role, user.Permission)
   except HTTPException as e:

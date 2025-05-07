@@ -49,12 +49,14 @@ def getCurrentUser(token: str = Depends(oauth2_scheme)):
       Username: str = payload.get("sub")
       if Username is None:
           raise HTTPException(status_code=401, detail="Invalid token")
-      return {"Username": Username, "Role": payload.get("Role"), "idUser": payload.get("IdUser")}
+      return {"Username": Username, "Role": payload.get("Role"), "IdUser": payload.get("IdUser")}
   except JWTError:
       raise HTTPException(status_code=401, detail="Invalid token")
 
 def authorize(role: str):
   def _authorize(user: dict = Depends(getCurrentUser)):
+    if user["Role"] == "Super Admin":
+        return user
     if user is None or user["Role"] != role:
         raise HTTPException(status_code=401, detail="Unauthorized")
     return user

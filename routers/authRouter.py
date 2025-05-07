@@ -28,4 +28,4 @@ async def login(formData: OAuth2PasswordRequestForm = Depends(), db: Session = D
 
 @router.get("/protected-route")
 def protected_route(current_user: dict = Depends(getCurrentUser)):
-    return {"username": current_user["Username"], "role": current_user["Role"], "idUser": current_user["IdUser"]}
+    return {"Username": current_user["Username"], "Role": current_user["Role"], "IdUser": current_user["IdUser"]}

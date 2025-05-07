@@ -6,6 +6,7 @@ class TaskSchema(BaseModel):
   IdTask: int
   Title: str
   Status: Optional[str]
+  DateCreate: Optional[str]
   DueDate: Optional[str]
   Priority: Optional[str]
   IdProject: Optional[int]
@@ -16,6 +17,7 @@ class TaskSchema(BaseModel):
 
 class TaskCreateSchema(BaseModel):
   Title: str
+  DateCreate: Optional[str]
   DueDate: Optional[str]
   Priority: Optional[str] = "Medium"
   IdProject: Optional[int]
@@ -26,6 +28,7 @@ class TaskCreateSchema(BaseModel):
 class TaskUpdateSchema(BaseModel):
   Title: str
   Status: Optional[str]
+  DateCreate: Optional[str]
   DueDate: Optional[str]
   Priority: Optional[str]
   IdProject: Optional[int]
