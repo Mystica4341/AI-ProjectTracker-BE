@@ -41,7 +41,7 @@ def createProject(db: Session, projectName: str, manager: int, status: str, prio
   db.add(project)
   db.commit()
   db.refresh(project)
-  aiRouter.createQdrant(project.id)
+  aiRouter.createQdrant(project.IdProject)
   return project
 
 def updateProject(db: Session, id: int, projectName: str, dateCreate: str, manager: int, status: str, priority: str):
