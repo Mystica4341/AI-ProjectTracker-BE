@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 class UserPermissionSchema(BaseModel):
     IdUser: Optional[int]
@@ -21,11 +21,18 @@ class UserPermissionUpdateSchema(BaseModel):
         
 class UserPermissionCreateSchema(BaseModel):
     IdUser: Optional[int]
-    IdPermission: Optional[int]
+    PermissionList: List[str]
 
     class Config:
         orm_mode = True
         
+class UserPermissionDeleteSchema(BaseModel):
+    IdUser: Optional[int]
+    PermissionList: List[str]
+    
+    class Config:
+        orm_mode = True
+
 class UserPermissionPagination(BaseModel):
     page: int
     pageSize: int

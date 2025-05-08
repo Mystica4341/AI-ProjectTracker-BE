@@ -82,7 +82,7 @@ CREATE TABLE UserPermissions (
     IdUser INT NOT NULL,
     IdPermission INT NOT NULL,
     PRIMARY KEY (IdUser, IdPermission),
-    FOREIGN KEY (IdUser) REFERENCES Users(IdUser),
+    FOREIGN KEY (IdUser) REFERENCES Users(IdUser) ON DELETE CASCADE,
     FOREIGN KEY (IdPermission) REFERENCES Permissions(IdPermission)
 )
 
@@ -184,6 +184,8 @@ JOIN Permissions P ON P.Name IN (
     'GET: ProjectStorage',
     'POST: Users',
     'PUT: Users'
+    'POST: ProjectStorage',
+    'POST: AI'
 ) WHERE U.Role = N'User';
 
 INSERT INTO ChatHistory (Context, Title, IdUser)

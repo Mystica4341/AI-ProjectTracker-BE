@@ -3,7 +3,6 @@ from models.userPermission import UserPermission
 from models.permission import Permission
 from models.user import User
 from fastapi import HTTPException
-
 from DAO import userDAO, permissionDAO
 
 def getUserPermissionsPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
@@ -42,8 +41,8 @@ def getUserPermissionsPagination(db: Session, page: int, pageSize: int, searchTe
         "data": userPermissions
     }
     
-def getUserPermissionById(db: Session, idUser: int, idPermission: int):
-    userPermission = db.query(UserPermission).filter(UserPermission.IdUser == idUser | UserPermission.IdPermission == idPermission).all()
+def getUserPermissionByIdUser(db: Session, idUser: int):
+    userPermission = db.query(UserPermission).filter(UserPermission.IdUser == idUser).all()
     if userPermission is None:
         raise HTTPException(status_code=404, detail="User permission not found")
       
@@ -57,7 +56,7 @@ def getUserPermissionById(db: Session, idUser: int, idPermission: int):
     
     return userPermission
   
-def getUserPermissionByName(db: Session, idUser: int, name: str):
+def getUserPermissionByPermissionName(db: Session, idUser: int, name: str):
     userPermission = db.query(UserPermission).join(Permission, UserPermission.IdPermission == Permission.IdPermission)
     
     userPermission = userPermission.filter(UserPermission.IdUser.ilike(f"%{idUser}%") & Permission.Name.ilike(f"%{name}%")).all()
@@ -76,31 +75,33 @@ def getUserPermissionByName(db: Session, idUser: int, name: str):
     
     return userPermission
   
-def createUserPermission(db: Session, idUser: int, idPermission: int):
+def createUserPermission(db: Session, idUser: int, permissionList: list):
     # check if user exists
     try:
-        userDAO.existUser(db, idUser)
+        userDAO.getUserById(db, idUser)
     except HTTPException as e:
         raise e
     
-    # check if permission exists
-    try:
-        permissionDAO.existPermission(db, idPermission)
-    except HTTPException as e:
-        raise e
+    for permissionName in permissionList:
+        permission = db.query(Permission).filter(Permission.Name == permissionName).first()
+        if not permission:
+            raise HTTPException(status_code=404, detail=f"Permission '{permissionName}' not found")
     
-    # check if user permission already exists
-    existUserPermission = db.query(UserPermission).filter(UserPermission.IdUser == idUser & UserPermission.IdPermission == idPermission).first()
-    if existUserPermission:
-        raise HTTPException(status_code=400, detail="User permission already exists")
+        # check if user permission already exists
+        existUserPermission = db.query(UserPermission).filter(
+            UserPermission.IdUser == idUser, 
+            UserPermission.IdPermission == permission.IdPermission).first()
+        if existUserPermission:
+            raise HTTPException(status_code=400, detail="User permission already exists")
     
-    # create new user permission
-    userPermission = UserPermission(IdUser=idUser, IdPermission=idPermission)
-    db.add(userPermission)
+        # create new user permission
+        userPermission = UserPermission(IdUser=idUser, IdPermission=permission.IdPermission)
+        db.add(userPermission)
+        
     db.commit()
-    db.refresh(userPermission)
+    # db.refresh(userPermission)
     
-    return userPermission
+    return {"detail": "User permissions added successfully"}
   
 def updateUserPermission(db: Session, idUser: int, idPermission: int):
     # check if user exists
@@ -128,26 +129,30 @@ def updateUserPermission(db: Session, idUser: int, idPermission: int):
     
     return userPermission
   
-def deleteUserPermission(db: Session, idUser: int, idPermission: int):
+def deleteUserPermission(db: Session, idUser: int, permissionList: list):
     # check if user exists
     try:
-        userDAO.existUser(db, idUser)
+        userDAO.getUserById(db, idUser)
     except HTTPException as e:
         raise e
     
-    # check if permission exists
-    try:
-        permissionDAO.existPermission(db, idPermission)
-    except HTTPException as e:
-        raise e
+    for permissionName in permissionList:
+        # Check if permission exists
+        permission = db.query(Permission).filter(Permission.Name == permissionName).first()
+        if not permission:
+            raise HTTPException(status_code=404, detail=f"Permission '{permissionName}' not found")
+
+        # Check if user-permission association exists
+        userPermission = db.query(UserPermission).filter(
+            UserPermission.IdUser == idUser,
+            UserPermission.IdPermission == permission.IdPermission
+        ).first()
+        if not userPermission:
+            raise HTTPException(status_code=404, detail=f"User permission '{permissionName}' not found for user ID {idUser}")
+
+        # Delete user-permission association
+        db.delete(userPermission)
     
-    # check if user permission exists
-    userPermission = db.query(UserPermission).filter(UserPermission.IdUser == idUser & UserPermission.IdPermission == idPermission).first()
-    if userPermission is None:
-        raise HTTPException(status_code=404, detail="User permission not found")
-    
-    # delete user permission
-    db.delete(userPermission)
     db.commit()
     
     return {"detail": "User permission disabled successfully"}

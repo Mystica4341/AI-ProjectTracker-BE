@@ -44,46 +44,43 @@ def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTer
       }
 
 def getProjectMemberById(db: Session, id: int):
-  projectMember = db.query(ProjectMember).filter(ProjectMember.IdProjectMember == id).first()
+  projectMember = db.query(ProjectMember).filter(ProjectMember.IdProject == id).all()
   if projectMember is None:
     raise HTTPException(status_code=404, detail="Project member not found")
 
-  try:
-    user = userDAO.getUserById(db, projectMember.IdUser)
-    project = projectDAO.getProjectById(db, projectMember.IdProject)
-  except HTTPException as e:
-    raise e
-
-  # append data
-  projectMember.Fullname = user.Fullname
-  projectMember.Email = user.Email
-  projectMember.ProjectName = project.ProjectName
+  for member in projectMember:
+    project = projectDAO.getProjectById(db, member.IdProject)
+    user = userDAO.getUserById(db, member.IdUser)
+    
+    member.Fullname = user.Fullname
+    member.Email = user.Email
+    member.ProjectName = project.ProjectName
 
   return projectMember
 
-def createProjectMember(db: Session, IdUser: int, UserRole: str, IdProject: int):
+def createProjectMember(db: Session, idUser: int, UserRole: str, IdProject: int):
   try:
     # check if project exists
     existProject(db, IdProject)
     # check if user exists
-    existUser(db, IdUser)
+    existUser(db, idUser)
     # check if there is project member already exists
-    duplicateProjectMember(db, IdUser, IdProject)
+    duplicateProjectMember(db, idUser, IdProject)
   except HTTPException as e:
     raise e
     
-  projectMember = ProjectMember(IdUser=IdUser, UserRole=UserRole, IdProject=IdProject)
+  projectMember = ProjectMember(IdUser=idUser, UserRole=UserRole, IdProject=IdProject)
   db.add(projectMember)
   db.commit()
   db.refresh(projectMember)
   return projectMember
 
-def updateProjectMember(db: Session, id: int, IdUser: int, UserRole: str, IdProject: int):
+def updateProjectMember(db: Session, id: int, idUser: int, UserRole: str, idProject: int):
   try:
     # check if project exists
-    existProject(db, IdProject)
+    existProject(db, idProject)
     # check if user exists
-    existUser(db, IdUser)
+    existUser(db, idUser)
     # check if there is project member already exists
     # duplicateProjectMember(db, IdUser, IdProject)
     # find project member by Id
@@ -91,9 +88,9 @@ def updateProjectMember(db: Session, id: int, IdUser: int, UserRole: str, IdProj
   except HTTPException as e:
     raise e
 
-  projectMember.IdUser = IdUser
+  projectMember.IdUser = idUser
   projectMember.UserRole = UserRole
-  projectMember.IdProject = IdProject
+  projectMember.IdProject = idProject
   db.commit()
   db.refresh(projectMember)
   return projectMember

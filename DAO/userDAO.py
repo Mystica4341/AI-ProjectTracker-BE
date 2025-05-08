@@ -2,6 +2,19 @@ from sqlalchemy.orm import Session
 from models.user import User
 from fastapi import HTTPException
 from authentication import hashPassword
+from DAO import userPermissionDAO
+
+default_permissions = [
+    "POST: Users",
+    "GET: Users",
+    "PUT: Users",
+    "GET: Projects",
+    "GET: Tasks",
+    "GET: ProjectStorage",
+    "POST: AI",
+    "GET: ProjectMembers",
+    "POST: ProjectStorage"
+]
 
 def getUsersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
     query =db.query(User)
@@ -80,6 +93,12 @@ def createUser(db: Session, username: str, fullname: str, email: str, password: 
     db.add(user)
     db.commit()
     db.refresh(user)
+    
+    try:
+      userPermissionDAO.createUserPermission(db, user.IdUser, default_permissions)
+    except HTTPException as e:
+      raise e
+    
     return user
 
 def updateUser(db: Session, id: int, username: str, fullname: str, email: str, password: str, phone_number: str, role: str = None, permission: str = None):

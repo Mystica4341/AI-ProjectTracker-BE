@@ -32,14 +32,14 @@ def getPermissionsPagination(db: Session, page: int, pageSize: int, searchTerm: 
 def getPermissionById(db: Session, id: int):
     permission = db.query(Permission).filter(Permission.IdPermission == id).first()
     if permission is None:
-        raise HTTPException(status_code=404, detail="Permission not found")
+        raise HTTPException(status_code=404, detail=f"Permission with id '{permission}' not found")
     
     return permission
   
 def getPermissionByName(db: Session, name: str):
     permission = db.query(Permission).filter(Permission.Name.ilike(f"%{name}%")).all()
     if permission is None:
-        raise HTTPException(status_code=404, detail="Permission not found")
+        raise HTTPException(status_code=404, detail=f"Permission '{permission}' not found")
     
     return permission
   

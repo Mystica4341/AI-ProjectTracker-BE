@@ -28,7 +28,7 @@ def getProjectMembersPagination(
   except HTTPException as e:
     raise e
 
-@router.get("/{id}", response_model=ProjectMemberSchema)
+@router.get("/{id}", response_model=list[ProjectMemberSchema])
 def getProjectMemberById(id: int, db: Session = Depends(get_db)):
   try:
     return projectMemberDAO.getProjectMemberById(db, id)
