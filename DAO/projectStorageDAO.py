@@ -5,11 +5,13 @@ from models.project import Project
 from DAO import projectDAO
 
 def getProjectStoragePaginated(db: Session, page: int, pageSize: int, searchTerm: str = None):
-  query = db.query(ProjectStorage)
+  query = db.query(ProjectStorage).join(Project, ProjectStorage.IdProject == Project.IdProject)
 
   # filter by search term
   if searchTerm:
-    query = query.filter(ProjectStorage.StorageUrl.ilike(f"%{searchTerm}%"))
+    query = query.filter(ProjectStorage.StorageUrl.ilike(f"%{searchTerm}%") | 
+                         ProjectStorage.Filename.ilike(f"%{searchTerm}%") | 
+                         Project.ProjectName.ilike(f"%{searchTerm}%"))
 
   # sorting
   query = query.order_by(ProjectStorage.IdStorage.asc())
