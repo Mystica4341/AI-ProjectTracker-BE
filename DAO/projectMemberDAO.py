@@ -5,16 +5,14 @@ from models.user import User
 from DAO import userDAO, projectDAO
 from fastapi import HTTPException
 
-def getAllProjectMembers(db: Session):
-  projectMembers = db.query(ProjectMember).all()
-  return projectMembers
-
 def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
-  query = db.query(ProjectMember)
+  query = db.query(ProjectMember).join(Project, ProjectMember.IdProject == Project.IdProject).join(User, ProjectMember.IdUser == User.IdUser)
 
   # filter by search term
   if searchTerm:
-    query = query.filter(ProjectMember.UserRole.ilike(f"%{searchTerm}%"))
+    query = query.filter(ProjectMember.UserRole.ilike(f"%{searchTerm}%") | 
+                         Project.ProjectName.ilike(f"%{searchTerm}%") | 
+                         User.Fullname.ilike(f"%{searchTerm}%") | User.Email.ilike(f"%{searchTerm}%"))
 
   # sorting
   query = query.order_by(ProjectMember.IdProjectMember.asc())

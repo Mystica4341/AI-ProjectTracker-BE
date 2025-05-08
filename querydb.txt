@@ -2,7 +2,7 @@ create database TrackingWebsite
 
 use TrackingWebsite
 
-drop table ChatHistory, Todos, Tasks, ProjectStorage, ProjectMembers, Projects, Users
+drop table ChatHistory, UserPermissions, Permissions, Todos, Tasks, ProjectStorage, ProjectMembers, Projects, Users
 
 CREATE TABLE Users (
     IdUser INT IDENTITY(1,1) PRIMARY KEY,
@@ -73,6 +73,19 @@ CREATE TABLE ChatHistory (
     FOREIGN KEY (IdUser) REFERENCES Users(IdUser) ON DELETE CASCADE
 );
 
+CREATE TABLE Permissions (
+    IdPermission INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(50),
+)
+
+CREATE TABLE UserPermissions (
+    IdUser INT NOT NULL,
+    IdPermission INT NOT NULL,
+    PRIMARY KEY (IdUser, IdPermission),
+    FOREIGN KEY (IdUser) REFERENCES Users(IdUser),
+    FOREIGN KEY (IdPermission) REFERENCES Permissions(IdPermission)
+)
+
 INSERT INTO Users (Username, Fullname, PhoneNumber, Email, Password, Role, Permission)
 VALUES (N'sa', N'Super Admin', '0902023213', 'sa@example.com', NULL, N'Super Admin', N'Full Access'),
         (N'admin', N'Admin', '09020235613', 'admin@example.com', NULL, N'Admin', N'Full Access'),
@@ -128,6 +141,50 @@ VALUES (1, 1),
         (2, 3),
         (3, 5),
         (3, 6);
+
+INSERT INTO Permissions (Name)
+VALUES ('POST: Users'),
+        ('GET: Users'),
+        ('PUT: Users'),
+        ('DELETE: Users'),
+        ('POST: Projects'),
+        ('GET: Projects'),
+        ('PUT: Projects'),
+        ('DELETE: Projects'),
+        ('POST: Tasks'),
+        ('GET: Tasks'),
+        ('PUT: Tasks'),
+        ('DELETE: Tasks'),
+        ('POST: ProjectMembers'),
+        ('GET: ProjectMembers'),
+        ('PUT: ProjectMembers'),
+        ('DELETE: ProjectMembers'),
+        ('POST: ProjectStorage'),
+        ('GET: ProjectStorage'),
+        ('PUT: ProjectStorage'),
+        ('DELETE: ProjectStorage'),
+        ('POST: AI')
+
+-- Admins and Super Admins get ALL permissions
+INSERT INTO UserPermissions (IdUser, IdPermission)
+SELECT U.IdUser, P.IdPermission
+FROM Users U
+JOIN Permissions P ON 1=1
+WHERE U.Role IN (N'Admin', N'Super Admin');
+
+-- Regular Users get only limited 'GET' permissions
+INSERT INTO UserPermissions (IdUser, IdPermission)
+SELECT U.IdUser, P.IdPermission
+FROM Users U
+JOIN Permissions P ON P.Name IN (
+    'GET: Users',
+    'GET: Projects',
+    'GET: Tasks',
+    'GET: ProjectMembers',
+    'GET: ProjectStorage',
+    'POST: Users',
+    'PUT: Users'
+) WHERE U.Role = N'User';
 
 INSERT INTO ChatHistory (Context, Title, IdUser)
 VALUES (N'Discussion about Project A', N'Project A Meeting', 1);

@@ -40,10 +40,10 @@ def getTodoByIdProjectMember(id: int, db: Session = Depends(get_db)):
   except HTTPException as e:
       raise e
 
-@router.get("/task/{id}", response_model=list[TodoSchema])
-def getTodoByIdTask(id: int, db: Session = Depends(get_db)):
+@router.get("/task/{title}", response_model=list[TodoSchema])
+def getTodoByTaskTitle(title: str, db: Session = Depends(get_db)):
   try:
-      return todoDAO.getTodoByIdTask(db, id)
+      return todoDAO.getTodoByTaskTitle(db, title)
   except HTTPException as e:
       raise e
 

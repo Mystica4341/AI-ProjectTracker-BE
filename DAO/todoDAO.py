@@ -6,11 +6,12 @@ from fastapi import HTTPException
 from DAO import taskDAO, projectMemberDAO
 
 def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
-  query = db.query(Todo)
+  query = db.query(Todo).join(ProjectMember, Todo.IdProjectMember == ProjectMember.IdProjectMember).join(Task, Todo.IdTask == Task.IdTask)
 
   # filter by search term
-  # if searchTerm:
-  #   query = query.filter(Todo.Title.ilike(f"%{searchTerm}%") | Todo.Status.ilike(f"%{searchTerm}%") | Todo.Priority.ilike(f"%{searchTerm}%"))
+  if searchTerm:
+    query = query.filter(Todo.Title.ilike(f"%{searchTerm}%") | Todo.Status.ilike(f"%{searchTerm}%") | Todo.Priority.ilike(f"%{searchTerm}%") | 
+                         Task.Title.ilike(f"%{searchTerm}%") | Task.Status.ilike(f"%{searchTerm}%") | Task.Priority.ilike(f"%{searchTerm}%"))
 
   # sorting
   query = query.order_by(Todo.IdTodo.asc())
@@ -85,8 +86,8 @@ def getTodoByIdProjectMember(db: Session, idProjectMember: int):
 
   return todo
 
-def getTodoByIdTask(db: Session, idTask: int):
-  todo = db.query(Todo).filter(Todo.IdTask == idTask).all()
+def getTodoByTaskTitle(db: Session, title: int):
+  todo = db.query(Todo).join(Task, Todo.IdTask == Task.IdTask).filter(Task.Title.ilike(f"%{title}%")).order_by(Task.Title.asc()).all()
   if todo is None:
     raise HTTPException(status_code=404, detail="Todo not found")
   

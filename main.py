@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 import uvicorn
 from typing import Annotated
 from database import engine, Base
-from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter, projectStorageRouter
+from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter, projectStorageRouter, permissionRouter, userPermissionRouter
 from AI import aiRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
@@ -35,6 +35,12 @@ app.include_router(authRouter.router, prefix="/api", tags=["auth"])
 
 # Include the user router
 app.include_router(userRouter.router, prefix="/api/users", tags=["users"])
+
+# Include the permission router
+app.include_router(permissionRouter.router, prefix="/api/permissions", tags=["permissions"])
+
+# Include the user permission router
+app.include_router(userPermissionRouter.router, prefix="/api/userpermissions", tags=["userpermissions"])
 
 # Include the project router
 app.include_router(projectRouter.router, prefix="/api/projects", tags=["projects"])
