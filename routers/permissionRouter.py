@@ -15,12 +15,12 @@ def get_db():
       db.close()
 
 @router.get("/")
-async def getPermissionsPagination(
+def getPermissionsPagination(
   db: Session = Depends(get_db), 
   page: int = Query(1, ge=1), 
   pageSize: int = Query(10, ge=1, le=100), 
   searchTerm: str = Query(None), 
-  user: dict = Depends(authorize("Admin"))
+  user: dict = Depends(authorize(get_db, "GET: Permissions")),
   ):
   try:
     return permissionDAO.getPermissionsPagination(db, page, pageSize, searchTerm)
@@ -28,35 +28,35 @@ async def getPermissionsPagination(
     raise e
   
 @router.get("/{id}")
-async def getPermissionById(id: int, db: Session = Depends(get_db)):
+def getPermissionById(id: int, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "GET: Permissions"))):
   try:
     return permissionDAO.getPermissionById(db, id)
   except HTTPException as e: 
     raise e
   
 @router.get("/name/{name}")
-async def getPermissionByName(name: str, db: Session = Depends(get_db)):
+def getPermissionByName(name: str, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "GET: Permissions"))):
   try:
     return permissionDAO.getPermissionByName(db, name)
   except HTTPException as e: 
     raise e
   
 @router.post("/")
-async def createPermission(permission: str, db: Session = Depends(get_db)):
+def createPermission(permission: str, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "POST: Permissions"))):
   try:
     return permissionDAO.createPermission(db, permission)
   except HTTPException as e: 
     raise e
   
 @router.put("/{id}")
-async def updatePermission(id: int, permission: str, db: Session = Depends(get_db)):
+def updatePermission(id: int, permission: str, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "PUT: Permissions"))):
   try:
     return permissionDAO.updatePermission(db, id, permission)
   except HTTPException as e: 
     raise e
   
 @router.delete("/{id}")
-async def deletePermission(id: int, db: Session = Depends(get_db)):
+def deletePermission(id: int, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "DELETE: Permissions"))):
   try:
     return permissionDAO.deletePermission(db, id)
   except HTTPException as e: 

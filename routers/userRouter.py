@@ -21,7 +21,7 @@ def getUsersPagination(
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
   pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
   searchTerm: str = Query(None), # search query, default is None
-  user: dict = Depends(authorize("Admin")),
+  user: dict = Depends(authorize(get_db, "GET: Users")),
   ):
   try:
     return userDAO.getUsersPagination(db, page, pageSize, searchTerm)
@@ -88,7 +88,7 @@ def updateUserImage(id: int, image: str, db: Session = Depends(get_db)):
     raise e
 
 @router.delete("/{id}")
-def deleteUser(id: int, db: Session = Depends(get_db)):
+def deleteUser(id: int, db: Session = Depends(get_db), auth: dict = Depends(authorize(get_db, "DELETE: Users"))):
   try:
     return userDAO.deleteUser(db, id)
   except HTTPException as e:

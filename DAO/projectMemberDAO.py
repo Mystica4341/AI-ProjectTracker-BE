@@ -42,8 +42,25 @@ def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTer
           "totalPages": totalPages,
           "data": projectMembers
       }
-
+  
 def getProjectMemberById(db: Session, id: int):
+  projectMember = db.query(ProjectMember).filter(ProjectMember.IdProjectMember == id).first()
+  if projectMember is None:
+    raise HTTPException(status_code=404, detail="Project member not found")
+
+  try:
+    project = projectDAO.getProjectById(db, projectMember.IdProject)
+    user = userDAO.getUserById(db, projectMember.IdUser)
+  except HTTPException as e:
+    raise e
+  
+  projectMember.Fullname = user.Fullname
+  projectMember.Email = user.Email
+  projectMember.ProjectName = project.ProjectName
+
+  return projectMember
+
+def getProjectMemberByIdProject(db: Session, id: int):
   projectMember = db.query(ProjectMember).filter(ProjectMember.IdProject == id).all()
   if projectMember is None:
     raise HTTPException(status_code=404, detail="Project member not found")

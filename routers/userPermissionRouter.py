@@ -16,12 +16,12 @@ def get_db():
       db.close()
       
 @router.get("/", response_model=UserPermissionPagination)
-async def getUserPermissionsPagination(
+def getUserPermissionsPagination(
   db: Session = Depends(get_db), 
   page: int = Query(1, ge=1), 
   pageSize: int = Query(10, ge=1, le=100), 
   searchTerm: str = Query(None), 
-  user: dict = Depends(authorize("Admin"))
+  user: dict = Depends(authorize(get_db, "GET: UserPermissions")),
   ):
   try:
     return userPermissionDAO.getUserPermissionsPagination(db, page, pageSize, searchTerm)
@@ -29,35 +29,35 @@ async def getUserPermissionsPagination(
     raise e
   
 @router.get("/{idUser}", response_model=list[UserPermissionSchema])
-async def getUserPermissionByIdUser(idUser: int, db: Session = Depends(get_db)):
+def getUserPermissionByIdUser(idUser: int, db: Session = Depends(get_db)):
   try:
     return userPermissionDAO.getUserPermissionByIdUser(db, idUser)
   except HTTPException as e: 
     raise e
   
 @router.post("/")
-async def createUserPermission(userPermission: UserPermissionCreateSchema, db: Session = Depends(get_db)):
+def createUserPermission(userPermission: UserPermissionCreateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "POST: UserPermissions"))):
   try:
     return userPermissionDAO.createUserPermission(db, userPermission.IdUser, userPermission.PermissionList)
   except HTTPException as e: 
     raise e
   
-@router.get("/{idUser}/name/{name}", response_model=list[UserPermissionSchema])
-async def getUserPermissionByPermissionName(idUser: int, name: str, db: Session = Depends(get_db)):
+@router.get("/{idUser}/name/{name}", response_model=UserPermissionSchema)
+def getUserPermissionByPermissionName(idUser: int, name: str, db: Session = Depends(get_db)):
   try:
     return userPermissionDAO.getUserPermissionByPermissionName(db, idUser, name)
   except HTTPException as e: 
     raise e
   
 @router.put("/{idUser}/{idPermission}")
-async def updateUserPermission(idUser: int, idPermission: int, db: Session = Depends(get_db)):
+def updateUserPermission(idUser: int, idPermission: int, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "PUT: UserPermissions"))):
   try:
     return userPermissionDAO.updateUserPermission(db, idUser, idPermission)
   except HTTPException as e: 
     raise e
   
 @router.delete("/{idUser}")
-async def deleteUserPermission(userPermission: UserPermissionDeleteSchema, db: Session = Depends(get_db)):
+def deleteUserPermission(userPermission: UserPermissionDeleteSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "DELETE: UserPermissions"))):
   try:
     return userPermissionDAO.deleteUserPermission(db, userPermission.IdUser, userPermission.PermissionList)
   except HTTPException as e: 

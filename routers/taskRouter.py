@@ -21,7 +21,7 @@ def getTasksPagination(
     page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
     pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
     searchTerm: str = Query(None), # search query, default is None
-    user: dict = Depends(authorize("Admin")),
+    user: dict = Depends(authorize(get_db, "GET: Tasks")),
     ):
     try:
         return taskDAO.getTasksPagination(db, page, pageSize, searchTerm)
@@ -36,7 +36,7 @@ def getTaskById(id: int, db: Session = Depends(get_db)):
         raise e
 
 @router.post("/", response_model=TaskSchema, response_model_exclude_none=True)
-def createTask(task: TaskCreateSchema, db: Session = Depends(get_db)):
+def createTask(task: TaskCreateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "POST: Tasks"))):
     # Validate Priority
     if task.Priority is not None and task.Priority not in PriorityEnum.__members__.values():
         raise HTTPException(
@@ -50,7 +50,7 @@ def createTask(task: TaskCreateSchema, db: Session = Depends(get_db)):
         raise e
 
 @router.put("/{id}", response_model=TaskSchema, response_model_exclude_none=True)
-def updateTask(id: int, task: TaskUpdateSchema, db: Session = Depends(get_db)):
+def updateTask(id: int, task: TaskUpdateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "PUT: Tasks"))):
     # Validate Priority
     if task.Priority and task.Priority not in PriorityEnum.__members__.values():
         raise HTTPException(
@@ -70,7 +70,7 @@ def updateTask(id: int, task: TaskUpdateSchema, db: Session = Depends(get_db)):
         raise e
 
 @router.delete("/{id}")
-def deleteTask(id: int, db: Session = Depends(get_db)):
+def deleteTask(id: int, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "DELETE: Tasks"))):
     try:
         return taskDAO.deleteTask(db, id)
     except HTTPException as e:

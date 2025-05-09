@@ -5,8 +5,9 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import secrets
 from pydantic import BaseModel
-from DAO import userDAO
+from DAO import userDAO, userPermissionDAO, permissionDAO
 from fastapi.security import OAuth2PasswordBearer
+import asyncio
 
 # Secret key for JWT
 SECRET_KEY = secrets.token_hex(32)
@@ -49,15 +50,13 @@ def getCurrentUser(token: str = Depends(oauth2_scheme)):
       Username: str = payload.get("sub")
       if Username is None:
           raise HTTPException(status_code=401, detail="Invalid token")
-      return {"Username": Username, "Role": payload.get("Role"), "IdUser": payload.get("IdUser")}
+      return {"Username": Username, "Role": payload.get("Role"), "IdUser": payload.get("IdUser"), "permissions": payload.get("permissions")}
   except JWTError:
       raise HTTPException(status_code=401, detail="Invalid token")
 
-def authorize(role: str):
+def authorize(db: Session, permission: str):
   def _authorize(user: dict = Depends(getCurrentUser)):
-    if user["Role"] == "Super Admin":
-        return user
-    if user is None or user["Role"] != role:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    if permission not in user["permissions"]:
+        raise HTTPException(status_code=403, detail="Forbidden: You do not have the required permission")
     return user
   return _authorize

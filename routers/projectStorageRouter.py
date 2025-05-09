@@ -21,7 +21,7 @@ def getProjectStoragesPagination(
   page: int = Query(1, gt=0),
   pageSize: int = Query(10, gt=0),
   searchTerm: str = Query(None),
-  user: dict = Depends(authorize("Admin"))
+  user: dict = Depends(authorize(get_db, "GET: ProjectStorages")),
 ):
   try:
     return projectStorageDAO.getProjectStoragesPagination(db, page, pageSize, searchTerm)
@@ -36,21 +36,21 @@ def getProjectStorageByIdProject(id: int, db: Session = Depends(get_db)):
     raise e
 
 @router.post("/", response_model=ProjectStorageSchema)
-def createProjectStorage(projectStorage: ProjectStorageCreateSchema, db: Session = Depends(get_db)):
+def createProjectStorage(projectStorage: ProjectStorageCreateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "POST: ProjectStorages"))):
   try:
     return projectStorageDAO.createProjectStorage(db, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size, projectStorage.uploadDate)
   except HTTPException as e:
     raise e
 
 @router.put("/{id}", response_model=ProjectStorageSchema)
-def updateProjectStorage(id: int, projectStorage: ProjectStorageUpdateSchema, db: Session = Depends(get_db)):
+def updateProjectStorage(id: int, projectStorage: ProjectStorageUpdateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "PUT: ProjectStorages"))):
   try:
     return projectStorageDAO.updateProjectStorage(db, id, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size, projectStorage.uploadDate)
   except HTTPException as e:
     raise e
 
 @router.delete("/{id}")
-def deleteProjectStorage(id: int, db: Session = Depends(get_db)):
+def deleteProjectStorage(id: int, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "DELETE: ProjectStorages"))):
   try:
     return projectStorageDAO.deleteProjectStorage(db, id)
   except HTTPException as e:

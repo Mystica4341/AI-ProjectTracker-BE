@@ -26,10 +26,6 @@ app.add_middleware(
 async def root():
   return {"message": "Hello World"}
 
-@app.get("/items/")
-async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
-    return {"token": token}
-
 # Include the authentication router
 app.include_router(authRouter.router, prefix="/api", tags=["auth"])
 

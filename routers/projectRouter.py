@@ -23,7 +23,7 @@ def getProjectsPagination(
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
   pageSize: int = Query(10, ge=1, le= 100), # limit of items per page, default is 10 and must be between 1 and 100
   searchTerm: str = Query(None), # search query, default is None
-  user: dict = Depends(authorize("Admin")),
+  user: dict = Depends(authorize(get_db, "GET: Projects")),
   ):
     try:
       return projectDAO.getProjectsPagination(db, page, pageSize, searchTerm)
@@ -40,7 +40,7 @@ def getProjectById(id: int, db: Session = Depends(get_db)):
 
 # Create project
 @router.post("/", response_model=ProjectSchema)
-def createProject(project: ProjectCreateSchema, db: Session = Depends(get_db)):
+def createProject(project: ProjectCreateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "POST: Projects"))):
     try:
       return projectDAO.createProject(db, project.ProjectName, None, None, None)
     except HTTPException as e:
@@ -48,7 +48,7 @@ def createProject(project: ProjectCreateSchema, db: Session = Depends(get_db)):
 
 # Update project
 @router.put("/{id}", response_model=ProjectSchema)  
-def updateProject(id: int, project: ProjectUpdateSchema, db: Session = Depends(get_db)):
+def updateProject(id: int, project: ProjectUpdateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "PUT: Projects"))):
         # Validate Status
     if project.Status and project.Status not in StatusEnum.__members__.values():
         raise HTTPException(
@@ -68,7 +68,7 @@ def updateProject(id: int, project: ProjectUpdateSchema, db: Session = Depends(g
 
 # Delete project  
 @router.delete("/{id}")  
-def deleteProject(id: int, db: Session = Depends(get_db)):  
+def deleteProject(id: int, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "DELETE: Projects"))):  
     try:  
       return projectDAO.deleteProject(db, id)
     except HTTPException as e:  

@@ -10,8 +10,7 @@ def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
 
   # filter by search term
   if searchTerm:
-    query = query.filter(Todo.Title.ilike(f"%{searchTerm}%") | Todo.Status.ilike(f"%{searchTerm}%") | Todo.Priority.ilike(f"%{searchTerm}%") | 
-                         Task.Title.ilike(f"%{searchTerm}%") | Task.Status.ilike(f"%{searchTerm}%") | Task.Priority.ilike(f"%{searchTerm}%"))
+    query = query.filter(Task.Title.ilike(f"%{searchTerm}%") | Task.Status.ilike(f"%{searchTerm}%") | Task.Priority.ilike(f"%{searchTerm}%"))
 
   # sorting
   query = query.order_by(Todo.IdTodo.asc())
@@ -151,11 +150,11 @@ def getTaskDetail(db: Session, idTask: int):
 
 def existTodo(db: Session, IdProjectMember: int, IdTask: int):
   try:
-    projectMember = projectMemberDAO.getProjectMemberById(db, IdProjectMember)
+    projectMemberDAO.getProjectMemberById(db, IdProjectMember)
   except:
     raise HTTPException(status_code=404, detail="There is no project member with id: " + str(IdProjectMember))
 
   try:
-    task = taskDAO.getTaskById(db, IdTask)
+    taskDAO.getTaskById(db, IdTask)
   except:
     raise HTTPException(status_code=404, detail="There is no task with id: " + str(id))

@@ -59,20 +59,22 @@ def getUserPermissionByIdUser(db: Session, idUser: int):
 def getUserPermissionByPermissionName(db: Session, idUser: int, name: str):
     userPermission = db.query(UserPermission).join(Permission, UserPermission.IdPermission == Permission.IdPermission)
     
-    userPermission = userPermission.filter(UserPermission.IdUser.ilike(f"%{idUser}%") & Permission.Name.ilike(f"%{name}%")).all()
+    userPermission = userPermission.filter((UserPermission.IdUser == idUser) & (Permission.Name.ilike(f"%{name}%"))).first()
     
-    if not userPermission:
+    if userPermission is None:
         raise HTTPException(status_code=404, detail="User permission not found")
     
     # Append additional data for each user permission
-    for up in userPermission:
-        permission = permissionDAO.getPermissionById(db, up.IdPermission)
-        user = userDAO.getUserById(db, up.IdUser)
-        
-        up.PermissionName = permission.Name
-        up.Username = user.Username
-        up.Email = user.Email
+    try:
+        permission = permissionDAO.getPermissionById(db, userPermission.IdPermission)
+        user = userDAO.getUserById(db, userPermission.IdUser)
+    except HTTPException as e:
+        raise e
     
+    userPermission.PermissionName = permission.Name
+    userPermission.Username = user.Username
+    userPermission.Email = user.Email
+
     return userPermission
   
 def createUserPermission(db: Session, idUser: int, permissionList: list):
