@@ -5,15 +5,22 @@ from authentication import hashPassword
 from DAO import userPermissionDAO
 
 default_permissions = [
-    "POST: Users",
     "GET: Users",
+    "POST: Users",
     "PUT: Users",
     "GET: Projects",
-    "GET: Tasks",
-    "GET: ProjectStorage",
-    "POST: AI",
     "GET: ProjectMembers",
-    "POST: ProjectStorage"
+    "GET: Tasks",
+    "PUT: Tasks",
+    "GET: Todos",
+    "PUT: Todos",
+    "GET: ProjectStorage",
+    "POST: ProjectStorage",
+    "DELETE: ProjectStorage",
+    "POST: AI",
+    "GET: ChatHistory",
+    "POST: ChatHistory",
+    "DELETE: ChatHistory"
 ]
 
 def getUsersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
