@@ -37,7 +37,7 @@ def protected_route(current_user: dict = Depends(getCurrentUser)):
     return {"Username": current_user["Username"], "Role": current_user["Role"], "IdUser": current_user["IdUser"], "permissions": current_user["permissions"]}
 
 @router.get("/permissions")
-def getPermissions(db: Session = Depends(get_db), user: dict = Depends(getCurrentUser)):
+def getCurrentUserPermissions(db: Session = Depends(get_db), user: dict = Depends(getCurrentUser)):
     permissions = userPermissionDAO.getUserPermissionByIdUser(db, user["IdUser"])
     permistionsList = []
     for permission in permissions:
