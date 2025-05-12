@@ -134,7 +134,7 @@ def existUser(db: Session, id: int):
   return user
 
 def duplicateProjectMember(db: Session, IdUser: int, IdProject: int):
-  projectMember = db.query(ProjectMember).filter(ProjectMember.IdUser == IdUser, ProjectMember.IdProject == IdProject).first()
+  projectMember = db.query(ProjectMember).filter(ProjectMember.IdUser == IdUser & ProjectMember.IdProject == IdProject).first()
   if projectMember is not None:
     raise HTTPException(status_code=400, detail="This user is already a member of this project")
   return projectMember

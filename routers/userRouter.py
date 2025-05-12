@@ -48,6 +48,13 @@ def getUserByUsername(username: str, db: Session = Depends(get_db)):
     return userDAO.getUserByUsername(db, username)
   except HTTPException as e:
     raise e
+  
+@router.get("/role/{role}", response_model=list[UserSchema])
+def getUserByRole(role: str, db: Session = Depends(get_db)):
+  try:
+    return userDAO.getUserByRole(db, role)
+  except HTTPException as e:
+    raise e
 
 @router.post("/", response_model=UserSchema)
 def createUser(user: UserCreateSchema, db: Session = Depends(get_db)):
