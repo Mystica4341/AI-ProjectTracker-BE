@@ -16,3 +16,4 @@ google-ai-haystack
 docx
 transformers
 "sentence-transformers>=3.0.0"
+apscheduler

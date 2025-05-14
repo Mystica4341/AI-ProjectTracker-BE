@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from models.project import Project
 from fastapi import HTTPException
 from AI import aiRouter
+from DAO import notificationDAO
 
 def getProjectsPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(Project)
@@ -57,6 +58,10 @@ def updateProject(db: Session, id: int, projectName: str, dateCreate: str, manag
   db.add(project)
   db.commit()
   db.refresh(project)
+  
+  if project.Manager != manager: # if manager is changed, notify the new manager
+    notificationDAO.notifyManagerAssignedToProject(db, manager, project.IdProject)
+  
   return project
 
 def deleteProject(db: Session, id: int):

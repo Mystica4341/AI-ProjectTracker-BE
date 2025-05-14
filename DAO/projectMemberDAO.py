@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from models.projectMember import ProjectMember
 from models.project import Project
 from models.user import User
-from DAO import userDAO, projectDAO
+from DAO import userDAO, projectDAO, notificationDAO
 from fastapi import HTTPException
 
 def getProjectMembersPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
@@ -90,6 +90,10 @@ def createProjectMember(db: Session, idUser: int, UserRole: str, IdProject: int)
   db.add(projectMember)
   db.commit()
   db.refresh(projectMember)
+  
+  # Notify the user
+  notificationDAO.notifyAddedProjectMember(db, IdProject, idUser)
+  
   return projectMember
 
 def updateProjectMember(db: Session, id: int, idUser: int, UserRole: str, idProject: int):
@@ -119,6 +123,9 @@ def deleteProjectMember(db: Session, id: int):
     raise e
   db.delete(projectMember)
   db.commit()
+  
+  # Notify the user
+  notificationDAO.notifyRemovedProjectMember(db, projectMember.IdProjectMember)
   return {"detail": "Project member deleted successfully"}
 
 def existProject(db: Session, id: int):

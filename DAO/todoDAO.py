@@ -3,7 +3,7 @@ from models.todo import Todo
 from models.projectMember import ProjectMember
 from models.task import Task
 from fastapi import HTTPException
-from DAO import taskDAO, projectMemberDAO
+from DAO import taskDAO, projectMemberDAO, notificationDAO
 
 def getTodosPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(Todo).join(ProjectMember, Todo.IdProjectMember == ProjectMember.IdProjectMember).join(Task, Todo.IdTask == Task.IdTask)
@@ -114,6 +114,11 @@ def createTodo(db: Session, IdProjectMember: int, IdTask: int):
   db.add(todo)
   db.commit()
   db.refresh(todo)
+  
+  # Notify the user
+  member = projectMemberDAO.getProjectMemberById(db, IdProjectMember)
+  notificationDAO.notifyTaskAssigned(db, IdTask, member.IdUser)
+  
   return todo
 
 def updateTodo(db: Session, id: int, IdProjectMember: int, IdTask: int):
