@@ -59,11 +59,19 @@ def embedderText():
 def retriever(idProject: int):
     return QdrantEmbeddingRetriever(document_store=storeDocs(idProject))
 
+# Maintain chat history
+chat_history = {}
 
+# Updated template to include conversation history
 template = [ChatMessage.from_system("""
-Using the information contained in the context that match with the Question, provide a comprehensive and moderate answer for the Question.
-Translate answer if possible
-Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide
+Using the information contained in the context and the conversation history, provide a comprehensive and moderate answer for the Question.
+Translate answer if possible.
+Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide.
+
+Conversation History:
+{% for message in history %}
+    {{ message.role }}: {{ message.content }}
+{% endfor %}
 
 Context:
 {% for document in documents %}
@@ -72,12 +80,12 @@ Context:
 
 Question: {{question}}
 Answer:
-"""
-)
-]
+""")]
+
 prompt_builder = ChatPromptBuilder(template=template)
 generator = GoogleAIGeminiChatGenerator(model="gemini-2.0-flash", api_key=Secret.GeminiToken)
 # generator = OpenAIGenerator(model="gpt-4", api_key=Secret.OpenAIToken)
+
 # Initialize pipeline for adding data
 add_data_pipeline = Pipeline()
 def pipelineAddData(idProject: int):
@@ -119,7 +127,7 @@ def pipelineAns(idProject: int):
     #connect
     query_pipeline.connect("text_embedder","retriever.query_embedding")
     query_pipeline.connect("retriever.documents","prompt_builder.documents")
-    query_pipeline.connect("prompt_builder.prompt", "llm.messages")
+    query_pipeline.connect("prompt_builder", "llm")
 
     return query_pipeline
 
@@ -162,9 +170,45 @@ async def write_docs(idProject: int, file_url: str):
 
 @router.post("/ask")
 def ask(question: Question):
+    # Initialize chat history for the project if not already present
+    if question.idProject not in chat_history:
+        chat_history[question.idProject] = []
+
+    # Add the user's question to the chat history
+    chat_history[question.idProject].append(ChatMessage.from_user(question.query))
+
+    # Create Qdrant collection if it doesn't exist
     createQdrant(question.idProject)
+
+    # Warm up the pipeline
     pipelineAns(question.idProject).warm_up()
-    response = query_pipeline.run({"text_embedder": {"text": question.query}, "prompt_builder": {"question": question.query}})
+
+    try:
+        # Run the query pipeline with the chat history
+        response = query_pipeline.run({
+            "text_embedder": {"text": question.query},
+            "prompt_builder": {
+                "question": question.query,
+                "history": chat_history[question.idProject]
+            }
+        })
+        
+        print("Pipeline Response:", response)
+
+        # Check if the response contains replies
+        if "llm" in response and "replies" in response["llm"] and response["llm"]["replies"]:
+            ai_response = response["llm"]["replies"][0]
+        else:
+            ai_response = "I'm sorry, I couldn't generate a response. Please try again."
+
+    except Exception as e:
+        print(f"Error: {e}")
+        ai_response = f"{e}"
+
+    # Add the AI's response to the chat history
+    chat_history[question.idProject].append(ChatMessage.from_assistant(ai_response))
+
     return {
-        "Answer": response["llm"]["replies"][0]
+        "Answer": ai_response,
+        "History": [{"role": msg.role, "content": msg.text} for msg in chat_history[question.idProject]]
     }
