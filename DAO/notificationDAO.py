@@ -253,7 +253,7 @@ def notifyManagerAssignedToProject(db: Session, idProject: int, idManager: int):
   try:
     # Get the project and manager details
     project = projectDAO.getProjectById(db, idProject)
-    if project.manager is None:
+    if project.Manager is None:
         pass
     manager = userDAO.getUserById(db, idManager)
     if not manager:
