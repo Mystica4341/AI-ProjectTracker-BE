@@ -217,8 +217,8 @@ def notifyTaskUpdate(db: Session, idTask: int, status: str):
         # Get the task details
         task = taskDAO.getTaskById(db, idTask)
         todo = db.query(Todo).filter(Todo.IdTask == idTask).all()
-        if todo is None:
-          pass
+        if not todo:
+          return {"message": "No todos found for the given task."}
         for t in todo:
             member = db.query(ProjectMember).filter(ProjectMember.IdProjectMember == t.IdProjectMember).all()
             for m in member:
