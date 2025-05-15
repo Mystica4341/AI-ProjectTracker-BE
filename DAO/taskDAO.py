@@ -69,6 +69,8 @@ def updateTask(db: Session, id: int, title: str, status: str, dueDate: str, prio
   try:
     existProject(db, idProject)
     task = getTaskById(db, id)
+    if task.Status != status: # if project is changed, notify the new project
+      notificationDAO.notifyTaskUpdate(db, id, status)
   except HTTPException as e:
     raise e
   task.Title = title
@@ -79,8 +81,6 @@ def updateTask(db: Session, id: int, title: str, status: str, dueDate: str, prio
   task.IdProject = idProject
   db.commit()
   db.refresh(task)
-  
-  notificationDAO.notifyTaskUpdate(db, task.IdTask)
   
   return task
 

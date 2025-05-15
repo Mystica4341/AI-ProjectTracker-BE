@@ -160,8 +160,6 @@ def notifyAddedProjectMember(db: Session, idProject: int, idUser: int, userRole:
     Notify a user when they are added to a project.
     """
     try:
-        # Get the project member details
-        # member = projectMemberDAO.getProjectMemberById(db, idProjectMember)
         try:
           user = userDAO.getUserById(db, idUser)
           project = projectDAO.getProjectById(db, idProject)
@@ -216,7 +214,7 @@ def notifyTaskAssigned(db: Session, idTask: int, idUser: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error notifying task assignment: {str(e)}")
       
-def notifyTaskUpdate(db: Session, idTask: int):
+def notifyTaskUpdate(db: Session, idTask: int, status: str):
     """
     Notify users when a task is updated.
     """
@@ -224,6 +222,8 @@ def notifyTaskUpdate(db: Session, idTask: int):
         # Get the task details
         task = taskDAO.getTaskById(db, idTask)
         todo = db.query(Todo).filter(Todo.IdTask == idTask).all()
+        if todo is None:
+          pass
         for t in todo:
             member = db.query(ProjectMember).filter(ProjectMember.IdProjectMember == t.IdProjectMember).all()
             for m in member:
@@ -235,7 +235,7 @@ def notifyTaskUpdate(db: Session, idTask: int):
                     raise e
 
                 # Create a notification for the user
-                message = f"Task '{task.Title}' in project '{project.ProjectName}' which your role is '{m.UserRole}' has been updated to '{task.Status}'."
+                message = f"Task '{task.Title}' in project '{project.ProjectName}' which your role is '{m.UserRole}' has been updated to '{status}'."
                 createNotification(db, user.IdUser, message)
             
         # Notify the manager of the project
@@ -258,6 +258,8 @@ def notifyManagerAssignedToProject(db: Session, idProject: int, idManager: int):
   try:
     # Get the project and manager details
     project = projectDAO.getProjectById(db, idProject)
+    if project.manager is None:
+        pass
     manager = userDAO.getUserById(db, idManager)
     if not manager:
         raise HTTPException(status_code=404, detail="Manager not found")
