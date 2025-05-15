@@ -147,17 +147,17 @@ async def write_docs(idProject: int, file_url: str):
     add_data_pipeline.run({"file_router": {"sources": [file_name]}})
     return {"message": "Documents successfully written to the vector database."}
 
-@router.post("delete-docs")
-def delete_docs(idProject: int, fileName: str):
-    """
-    Endpoint to delete all documents from the vector database.
-    """
-    try:
-        qdrant_client.delete("collection" + str(idProject), models.FilterSelector(filter = models.Filter(must=[models.FieldCondition(key="meta",match= models.MatchValue(value=fileName))])))
-        return {"message": "Documents successfully deleted from the vector database."}
-    except Exception as e:
-        print('Error: ', e)
-        return {"message": "Error deleting documents from the vector database."}
+# @router.post("delete-docs")
+# def delete_docs(idProject: int, fileName: str):
+#     """
+#     Endpoint to delete all documents from the vector database.
+#     """
+#     try:
+#         qdrant_client.delete("collection" + str(idProject), models.FilterSelector(filter = models.Filter(must=[models.FieldCondition(key="meta",match= models.MatchValue(value=fileName))])))
+#         return {"message": "Documents successfully deleted from the vector database."}
+#     except Exception as e:
+#         print('Error: ', e)
+#         return {"message": "Error deleting documents from the vector database."}
 
 @router.post("/ask")
 def ask(question: Question):
@@ -167,35 +167,3 @@ def ask(question: Question):
     return {
         "Answer": response["llm"]["replies"][0]
     }
-
-@router.post("/write-docs")
-async def writeDocs(idProject: int, file: UploadFile = File(...)):
-    """
-    Endpoint to upload a DOCX or PDF file and write its content to the vector database.
-    """
-    try:
-        # Check file type
-        if file.content_type not in ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
-            raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
-
-        # Read file content
-        file_content = await file.read()
-
-        # Convert file to documents
-        if file.content_type == "application/pdf":
-            converter = PyPDFToDocument()
-        elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            converter = DOCXToDocument()
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported file type.")
-
-        documents = converter.convert(file_content)
-
-        # Embed and write documents to the vector database
-        embedded_docs = embedderDoc().run(documents)
-        storeDocs(idProject).write_documents(embedded_docs['documents'])
-
-        return {"message": "Documents successfully written to the vector database."}
-
-    except Exception as e:
-        return {"error": str(e)}
