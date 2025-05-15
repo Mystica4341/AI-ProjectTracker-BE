@@ -160,11 +160,8 @@ def notifyAddedProjectMember(db: Session, idProject: int, idUser: int, userRole:
     Notify a user when they are added to a project.
     """
     try:
-        try:
-          user = userDAO.getUserById(db, idUser)
-          project = projectDAO.getProjectById(db, idProject)
-        except HTTPException as e:
-          raise e
+        user = userDAO.getUserById(db, idUser)
+        project = projectDAO.getProjectById(db, idProject)
 
         # Create a notification for the user
         message = f"You have been added to project '{project.ProjectName}' with role '{userRole}'."
@@ -181,11 +178,9 @@ def notifyRemovedProjectMember(db: Session, idProject: int, idUser: int):
     """
     try:
         # Get the project member details
-        try:
-          user = userDAO.getUserById(db, idUser)
-          project = projectDAO.getProjectById(db, idProject)
-        except HTTPException as e:
-          raise e
+        user = userDAO.getUserById(db, idUser)
+        project = projectDAO.getProjectById(db, idProject)
+
 
         # Create a notification for the user
         message = f"You have been removed from project '{project.ProjectName}'."
