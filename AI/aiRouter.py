@@ -215,7 +215,7 @@ def ask(question: Question):
             "text_embedder": {"text": question.query},
             "prompt_builder": {
                 "question": question.query,
-                "history": chat_history[question.idProject],
+                "history": [],
                 "template": messages
             }, 
         })
