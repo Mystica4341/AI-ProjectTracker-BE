@@ -62,9 +62,10 @@ chat_history = {}
 # Updated template to include conversation history
 template = ChatMessage.from_system("""
 Using the information contained in the context and the conversation history, provide a comprehensive and moderate answer for the Question.
-Translate answer if possible.
+Translate answer to vietnamese if the question is vietnamese and if possible.
 Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide.
 If the answer is not in the context, try to find relevant information
+If the question is about analysis, provide a detailed analysis and recommendation based on the context. Finally, please suggest a better solution if possible.
 
 Conversation History:
 {% for message in history %}
@@ -152,8 +153,6 @@ def pipelineAns(idProject: int):
 
     return query_pipeline
 
-# def uploadDocs():
-#     return 0
 @router.post("/write-docs")
 async def write_docs(idProject: int, file_url: str):
     createQdrant(idProject)
@@ -191,15 +190,10 @@ async def write_docs(idProject: int, file_url: str):
 
 # messages = [template]
 
+messages = [template]
+
 @router.post("/ask")
 def ask(question: Question):
-    # Initialize chat history for the project if not already present
-    if question.idProject not in chat_history:
-        chat_history[question.idProject] = []
-
-    # Add the user's question to the chat history
-    chat_history[question.idProject].append(ChatMessage.from_user(question.query))
-    # print("Chat History:", chat_history[question.idProject])
 
     # Create Qdrant collection if it doesn't exist
     createQdrant(question.idProject)
@@ -207,7 +201,7 @@ def ask(question: Question):
     # Warm up the pipeline
     pipelineAns(question.idProject).warm_up()
     
-    messages = [template, ChatMessage.from_user(question.query)]
+    messages.append(ChatMessage.from_user(question.query))
 
     try:
         # Run the query pipeline with the chat history
@@ -222,16 +216,15 @@ def ask(question: Question):
 
         # Check if the response contains replies
         if "llm" in response and "replies" in response["llm"] and response["llm"]["replies"]:
-            ai_response = response["llm"]["replies"][0]
-
+            aiResponse = response["llm"]["replies"][0]
     except Exception as e:
         print(f"Error: {e}")
-        ai_response = f"{e}"
-
-    # Add the AI's response to the chat history
-    chat_history[question.idProject].append(ChatMessage.from_assistant(ai_response))
+        aiResponse = f"{e}"
+        
+    # Append the AI response to the chat history
+    messages.append(ChatMessage.from_assistant(aiResponse.text))
 
     return {
-        "Answer": ai_response.text,
+        "Answer": aiResponse.text,
         # "History": [{"role": msg.role, "content": msg.text} for msg in chat_history[question.idProject]]
     }
