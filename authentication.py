@@ -57,6 +57,6 @@ def getCurrentUser(token: str = Depends(oauth2_scheme)):
 def authorize(db: Session, permission: str):
   def _authorize(user: dict = Depends(getCurrentUser)):
     if permission not in user["permissions"]:
-        raise HTTPException(status_code=403, detail="Forbidden: You do not have the required permission")
+        raise HTTPException(status_code=403, detail=f"Forbidden: You do not have the required '{permission}' permission")
     return user
   return _authorize

@@ -2,10 +2,11 @@ from fastapi import FastAPI, Depends
 import uvicorn
 from typing import Annotated
 from database import engine, Base
-from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter, projectStorageRouter, permissionRouter, userPermissionRouter
+from routers import userRouter, projectRouter, taskRouter, projectMemberRouter, todoRouter, authRouter, projectStorageRouter, permissionRouter, userPermissionRouter, notificationRouter
 from AI import aiRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from Scheduler import start_scheduler
 
 Base.metadata.create_all(bind=engine)
 
@@ -53,8 +54,16 @@ app.include_router(projectMemberRouter.router, prefix="/api/members", tags=["mem
 # Include the todo router
 app.include_router(todoRouter.router, prefix="/api/todos", tags=["todos"])
 
+# Include the notification router
+app.include_router(notificationRouter.router, prefix="/api/notifications", tags=["notifications"])
+
 # Include the AI router
 app.include_router(aiRouter.router, prefix="/api/ai", tags=["AI"])
+
+# Start the scheduler when the app starts
+@app.on_event("startup")
+def startup_event():
+    start_scheduler()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

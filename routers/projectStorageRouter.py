@@ -28,24 +28,31 @@ def getProjectStoragesPagination(
   except HTTPException as e:
     raise e
 
-@router.get("/{id}", response_model=ProjectStorageSchema)
+@router.get("/{id}", response_model=list[ProjectStorageSchema])
 def getProjectStorageByIdProject(id: int, db: Session = Depends(get_db)):
   try:
     return projectStorageDAO.getProjectStorageByIdProject(db, id)
+  except HTTPException as e:
+    raise e
+  
+@router.get("/filename/{filename}", response_model=ProjectStorageSchema)
+def getProjectStorageByFilename(filename: str, db: Session = Depends(get_db)):
+  try:
+    return projectStorageDAO.getProjectStorageByFilename(db, filename)
   except HTTPException as e:
     raise e
 
 @router.post("/", response_model=ProjectStorageSchema)
 def createProjectStorage(projectStorage: ProjectStorageCreateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "POST: ProjectStorages"))):
   try:
-    return projectStorageDAO.createProjectStorage(db, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size, projectStorage.uploadDate)
+    return projectStorageDAO.createProjectStorage(db, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size)
   except HTTPException as e:
     raise e
 
 @router.put("/{id}", response_model=ProjectStorageSchema)
 def updateProjectStorage(id: int, projectStorage: ProjectStorageUpdateSchema, db: Session = Depends(get_db), user: dict = Depends(authorize(get_db, "PUT: ProjectStorages"))):
   try:
-    return projectStorageDAO.updateProjectStorage(db, id, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size, projectStorage.uploadDate)
+    return projectStorageDAO.updateProjectStorage(db, id, projectStorage.IdProject, projectStorage.StorageURL, projectStorage.Filename, projectStorage.Size)
   except HTTPException as e:
     raise e
 

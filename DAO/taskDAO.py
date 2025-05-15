@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from models.task import Task
 from models.project import Project
-from DAO import projectDAO
+from DAO import projectDAO, notificationDAO
 from fastapi import HTTPException
 
 def getTasksPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
@@ -65,10 +65,12 @@ def createTask(db: Session, title: str, dueDate: str, priority: str, idProject: 
   db.refresh(task)
   return task
 
-def updateTask(db: Session, id: int, title: str, status: str, dateCreate: str, dueDate: str, priority: str, idProject: int):
+def updateTask(db: Session, id: int, title: str, status: str, dueDate: str, priority: str, idProject: int):
   try:
     existProject(db, idProject)
     task = getTaskById(db, id)
+    if task.Status != status: # if project is changed, notify the new project
+      notificationDAO.notifyTaskUpdate(db, id, status)
   except HTTPException as e:
     raise e
   task.Title = title
@@ -79,6 +81,7 @@ def updateTask(db: Session, id: int, title: str, status: str, dateCreate: str, d
   task.IdProject = idProject
   db.commit()
   db.refresh(task)
+  
   return task
 
 def deleteTask(db: Session, id: int):

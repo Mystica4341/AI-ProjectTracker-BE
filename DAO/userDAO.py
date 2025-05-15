@@ -28,7 +28,11 @@ def getUsersPagination(db: Session, page: int, pageSize: int, searchTerm: str = 
 
     # filter by search term
     if searchTerm:
-        query = query.filter(User.Username.ilike(f"%{searchTerm}%") | User.Fullname.ilike(f"%{searchTerm}%") | User.Email.ilike(f"%{searchTerm}%") | User.PhoneNumber.ilike(f"%{searchTerm}%"))
+        query = query.filter(User.Username.ilike(f"%{searchTerm}%") | 
+                             User.Fullname.ilike(f"%{searchTerm}%") | 
+                             User.Email.ilike(f"%{searchTerm}%") | 
+                             User.PhoneNumber.ilike(f"%{searchTerm}%") |
+                             User.Role.ilike(f"%{searchTerm}%"))
 
     # sorting
     query = query.order_by(User.IdUser.asc())
@@ -78,6 +82,12 @@ def getUserByPhoneNumber(db: Session, phone_number: str):
     #     raise HTTPException(status_code=400, detail="User's Phone Number already exists")
     if user is None:
         raise HTTPException(status_code=404, detail="User's phone number not found")
+    return user
+  
+def getUserByRole(db: Session, role: str):
+    user = db.query(User).filter(User.Role == role).all()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User's role not found")
     return user
 
 def createUser(db: Session, username: str, fullname: str, email: str, password: str, phone_number: str, role: str = None, permission: str = None):

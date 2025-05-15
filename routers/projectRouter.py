@@ -62,7 +62,7 @@ def updateProject(id: int, project: ProjectUpdateSchema, db: Session = Depends(g
             detail=f"Invalid priority: {project.Priority}. Must be one of [Low, Medium, High]."
         )
     try:  
-      return projectDAO.updateProject(db, id, project.ProjectName, None, project.Manager, project.Status, project.Priority)  
+      return projectDAO.updateProject(db, id, project.ProjectName, project.Manager, project.Status, project.Priority)  
     except HTTPException as e:  
       raise e  
 

@@ -15,7 +15,7 @@ from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile, HTTPException
 from pydantic import BaseModel
 from haystack.utils import Secret
 from AI import Secret
@@ -167,3 +167,35 @@ def ask(question: Question):
     return {
         "Answer": response["llm"]["replies"][0]
     }
+
+@router.post("/write-docs")
+async def writeDocs(idProject: int, file: UploadFile = File(...)):
+    """
+    Endpoint to upload a DOCX or PDF file and write its content to the vector database.
+    """
+    try:
+        # Check file type
+        if file.content_type not in ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]:
+            raise HTTPException(status_code=400, detail="Only PDF and DOCX files are supported.")
+
+        # Read file content
+        file_content = await file.read()
+
+        # Convert file to documents
+        if file.content_type == "application/pdf":
+            converter = PyPDFToDocument()
+        elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            converter = DOCXToDocument()
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type.")
+
+        documents = converter.convert(file_content)
+
+        # Embed and write documents to the vector database
+        embedded_docs = embedderDoc().run(documents)
+        storeDocs(idProject).write_documents(embedded_docs['documents'])
+
+        return {"message": "Documents successfully written to the vector database."}
+
+    except Exception as e:
+        return {"error": str(e)}

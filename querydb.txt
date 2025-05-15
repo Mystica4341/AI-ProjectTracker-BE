@@ -2,7 +2,7 @@ create database TrackingWebsite
 
 use TrackingWebsite
 
-drop table ChatHistory, UserPermissions, Permissions, Todos, Tasks, ProjectStorage, ProjectMembers, Projects, Users
+drop table Notifications, ChatHistory, UserPermissions, Permissions, Todos, Tasks, ProjectStorage, ProjectMembers, Projects, Users
 
 CREATE TABLE Users (
     IdUser INT IDENTITY(1,1) PRIMARY KEY,
@@ -84,6 +84,14 @@ CREATE TABLE UserPermissions (
     PRIMARY KEY (IdUser, IdPermission),
     FOREIGN KEY (IdUser) REFERENCES Users(IdUser) ON DELETE CASCADE,
     FOREIGN KEY (IdPermission) REFERENCES Permissions(IdPermission)
+)
+
+CREATE TABLE Notifications (
+    IdNotification INT IDENTITY(1,1) PRIMARY KEY,
+    IdUser INT NOT NULL,
+    Message NVARCHAR(200) NOT NULL,
+    DateCreate NVARCHAR(20),
+    FOREIGN KEY (IdUser) REFERENCES Users(IdUser) ON DELETE CASCADE
 )
 
 INSERT INTO Users (Username, Fullname, PhoneNumber, Email, Password, Role, Permission)
