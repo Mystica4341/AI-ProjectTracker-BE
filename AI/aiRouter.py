@@ -15,7 +15,7 @@ from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from haystack.utils import Secret
 from AI import Secret
@@ -145,6 +145,7 @@ async def write_docs(idProject: int, file_url: str):
     pipelineAddData(idProject).warm_up()
     # Embed and write documents to the vector database
     add_data_pipeline.run({"file_router": {"sources": [file_name]}})
+    os.remove(file_name) 
     return {"message": "Documents successfully written to the vector database."}
 
 # @router.post("delete-docs")
