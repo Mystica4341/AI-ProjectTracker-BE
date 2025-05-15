@@ -45,9 +45,11 @@ def createProject(db: Session, projectName: str, manager: int, status: str, prio
   aiRouter.createQdrant(project.IdProject)
   return project
 
-def updateProject(db: Session, id: int, projectName: str, dateCreate: str, manager: int, status: str, priority: str):
+def updateProject(db: Session, id: int, projectName: str, manager: int, status: str, priority: str):
   try:
     project = getProjectById(db, id)
+    if project.Manager != manager: # if manager is changed, notify the new manager
+      notificationDAO.notifyManagerAssignedToProject(db, id, manager)
   except HTTPException as e:
     raise e
   project.ProjectName = projectName
@@ -58,9 +60,6 @@ def updateProject(db: Session, id: int, projectName: str, dateCreate: str, manag
   db.add(project)
   db.commit()
   db.refresh(project)
-  
-  if project.Manager != manager: # if manager is changed, notify the new manager
-    notificationDAO.notifyManagerAssignedToProject(db, manager, project.IdProject)
   
   return project
 

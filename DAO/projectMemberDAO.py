@@ -75,28 +75,28 @@ def getProjectMemberByIdProject(db: Session, id: int):
 
   return projectMember
 
-def createProjectMember(db: Session, idUser: int, UserRole: str, IdProject: int):
+def createProjectMember(db: Session, idUser: int, userRole: str, idProject: int):
   try:
     # check if project exists
-    existProject(db, IdProject)
+    existProject(db, idProject)
     # check if user exists
     existUser(db, idUser)
     # check if there is project member already exists
-    duplicateProjectMember(db, idUser, IdProject)
+    duplicateProjectMember(db, idUser, idProject)
   except HTTPException as e:
     raise e
     
-  projectMember = ProjectMember(IdUser=idUser, UserRole=UserRole, IdProject=IdProject)
+  projectMember = ProjectMember(IdUser=idUser, UserRole=userRole, IdProject=idProject)
   db.add(projectMember)
   db.commit()
   db.refresh(projectMember)
   
   # Notify the user
-  notificationDAO.notifyAddedProjectMember(db, IdProject, idUser)
+  notificationDAO.notifyAddedProjectMember(db, idProject, idUser, userRole)
   
   return projectMember
 
-def updateProjectMember(db: Session, id: int, idUser: int, UserRole: str, idProject: int):
+def updateProjectMember(db: Session, id: int, idUser: int, userRole: str, idProject: int):
   try:
     # check if project exists
     existProject(db, idProject)
@@ -110,7 +110,7 @@ def updateProjectMember(db: Session, id: int, idUser: int, UserRole: str, idProj
     raise e
 
   projectMember.IdUser = idUser
-  projectMember.UserRole = UserRole
+  projectMember.UserRole = userRole
   projectMember.IdProject = idProject
   db.commit()
   db.refresh(projectMember)
@@ -125,7 +125,7 @@ def deleteProjectMember(db: Session, id: int):
   db.commit()
   
   # Notify the user
-  notificationDAO.notifyRemovedProjectMember(db, projectMember.IdProjectMember)
+  notificationDAO.notifyRemovedProjectMember(db, projectMember.IdProject, projectMember.IdUser)
   return {"detail": "Project member deleted successfully"}
 
 def existProject(db: Session, id: int):
@@ -140,8 +140,7 @@ def existUser(db: Session, id: int):
     raise HTTPException(status_code=404, detail="There is no user with id: " + str(id))
   return user
 
-def duplicateProjectMember(db: Session, IdUser: int, IdProject: int):
-  projectMember = db.query(ProjectMember).filter(ProjectMember.IdUser == IdUser & ProjectMember.IdProject == IdProject).first()
+def duplicateProjectMember(db: Session, idUser: int, idProject: int):
+  projectMember = db.query(ProjectMember).filter(ProjectMember.IdUser == idUser, ProjectMember.IdProject == idProject).first()
   if projectMember is not None:
     raise HTTPException(status_code=400, detail="This user is already a member of this project")
-  return projectMember

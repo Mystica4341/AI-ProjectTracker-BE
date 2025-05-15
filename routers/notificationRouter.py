@@ -12,7 +12,7 @@ def get_db():
   finally:
       db.close()
       
-@router.get("/", response_model=dict)
+@router.get("/")
 def getNotificationsPagination(
   db: Session = Depends(get_db),
   page: int = Query(1, ge=1), # page number, default is 1 and must be greater than 1
@@ -24,10 +24,10 @@ def getNotificationsPagination(
   except HTTPException as e:
     raise e
   
-@router.get("/{id}", response_model=list)
-def getNotificationById(id: int,db: Session = Depends(get_db)):
+@router.get("/{id}")
+def getNotificationByIdUser(idUser: int, db: Session = Depends(get_db)):
   try:
-    return notificationDAO.getNotificationById(db, id)
+    return notificationDAO.getNotificationByIdUser(db, idUser)
   except HTTPException as e:
     raise e
   

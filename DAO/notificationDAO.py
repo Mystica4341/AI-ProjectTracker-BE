@@ -3,12 +3,13 @@ from models.notification import Notification
 from models.user import User
 from models.task import Task
 from models.todo import Todo
+from models.projectMember import ProjectMember
 from DAO import userDAO, projectDAO, projectMemberDAO, taskDAO
 from fastapi import HTTPException
 from datetime import datetime, timedelta, date
 
 def getNotificationsPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
-  query = db.query(Notification).join(User, Notification.IdUser == User.IdUser).add_columns(User.Username)
+  query = db.query(Notification).join(User, Notification.IdUser == User.IdUser)
 
   # filter by search term
   if searchTerm:
@@ -25,6 +26,11 @@ def getNotificationsPagination(db: Session, page: int, pageSize: int, searchTerm
 
   # get total pages
   totalPages = (totalCount + pageSize - 1) // pageSize
+  
+  for n in notifications:
+    users = userDAO.getUserById(db, n.IdUser)
+    
+    n.Username = users.Username
 
   return {
           "page": page,
@@ -49,8 +55,8 @@ def createNotification(db: Session, idUser: int, message: str):
 
   return notification
 
-def getNotificationById(db: Session, id: int):
-  notification = db.query(Notification).filter(Notification.IdNotification == id).all()
+def getNotificationByIdUser(db: Session, idUser: int):
+  notification = db.query(Notification).filter(Notification.IdUser == idUser).all()
   if notification is None:
     raise HTTPException(status_code=404, detail="Notification not found")
 
@@ -121,38 +127,43 @@ def notifyOverdueTasks(db: Session):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error notifying overdue tasks: {str(e)}")
       
-def notifyAddedProjectMember(db: Session, idProjectMember: int):
+def notifyAddedProjectMember(db: Session, idProject: int, idUser: int, userRole: str):
     """
     Notify a user when they are added to a project.
     """
     try:
         # Get the project member details
-        member = projectMemberDAO.getProjectMemberById(db, idProjectMember)
-        user = userDAO.getUserById(db, member.IdUser)
-        project = projectDAO.getProjectById(db, member.IdProject)
+        # member = projectMemberDAO.getProjectMemberById(db, idProjectMember)
+        try:
+          user = userDAO.getUserById(db, idUser)
+          project = projectDAO.getProjectById(db, idProject)
+        except HTTPException as e:
+          raise e
 
         # Create a notification for the user
-        message = f"You have been added to project '{project.ProjectName} with role {member.UserRole}'."
-        createNotification(db, user.IdUser, message)
+        message = f"You have been added to project '{project.ProjectName}' with role '{userRole}'."
+        createNotification(db, idUser, message)
 
         return {"message": f"Notification created for user '{user.Username}'."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error notifying added project member: {str(e)}")
       
-def notifyRemovedProjectMember(db: Session, idProjectMember: int):
+def notifyRemovedProjectMember(db: Session, idProject: int, idUser: int):
     """
     Notify a user when they are removed from a project.
     """
     try:
         # Get the project member details
-        member = projectMemberDAO.getProjectMemberById(db, idProjectMember)
-        user = userDAO.getUserById(db, member.IdUser)
-        project = projectDAO.getProjectById(db, member.IdProject)
+        try:
+          user = userDAO.getUserById(db, idUser)
+          project = projectDAO.getProjectById(db, idProject)
+        except HTTPException as e:
+          raise e
 
         # Create a notification for the user
         message = f"You have been removed from project '{project.ProjectName}'."
-        createNotification(db, user.IdUser, message)
+        createNotification(db, idUser, message)
 
         return {"message": f"Notification created for user '{user.Username}'."}
 
@@ -184,34 +195,42 @@ def notifyTaskUpdate(db: Session, idTask: int):
     try:
         # Get the task details
         task = taskDAO.getTaskById(db, idTask)
-        project_members = projectMemberDAO.getProjectMemberByIdProject(db, task.IdProject)
+        todo = db.query(Todo).filter(Todo.IdTask == idTask).all()
+        for t in todo:
+            member = db.query(ProjectMember).filter(ProjectMember.IdProjectMember == t.IdProjectMember).all()
+            for m in member:
+                # Get the project member details
+                try:
+                    user = userDAO.getUserById(db, m.IdUser)
+                    project = projectDAO.getProjectById(db, task.IdProject)
+                except HTTPException as e:
+                    raise e
 
-        for member in project_members:
-            user = userDAO.getUserById(db, member.IdUser)
-
-            # Create a notification for each user
-            message = f"Task '{task.Title}' has been updated to '{task.Status}'."
-            createNotification(db, user.IdUser, message)
+                # Create a notification for the user
+                message = f"Task '{task.Title}' in project '{project.ProjectName}' which your role is '{m.UserRole}' has been updated to '{task.Status}'."
+                createNotification(db, user.IdUser, message)
             
         # Notify the manager of the project
-        project = projectDAO.getProjectById(db, task.IdProject)
-        manager = userDAO.getUserById(db, project.Manager)
+        try:
+          manager = userDAO.getUserById(db, project.Manager)
+        except HTTPException as e:
+          raise HTTPException(status_code=404, detail="Manager in Project not found")
 
         manager_message = f"Task '{task.Title}' in your project '{project.ProjectName}' has been updated to '{task.Status}'."
         createNotification(db, manager.IdUser, manager_message)
-        return {"message": f"Notifications created for {len(project_members)} project members."}
+        return {"message": f"Notifications created for {len(user.Username)} project members."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error notifying task update: {str(e)}")
       
-def notifyManagerAssignedToProject(db: Session, idProject: int):
+def notifyManagerAssignedToProject(db: Session, idProject: int, idManager: int):
   """
   Notify a manager when they are assigned to a project by the super admin.
   """
   try:
     # Get the project and manager details
     project = projectDAO.getProjectById(db, idProject)
-    manager = userDAO.getUserById(db, project.Manager)
+    manager = userDAO.getUserById(db, idManager)
     if not manager:
         raise HTTPException(status_code=404, detail="Manager not found")
 

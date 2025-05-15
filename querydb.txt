@@ -89,7 +89,7 @@ CREATE TABLE UserPermissions (
 CREATE TABLE Notifications (
     IdNotification INT IDENTITY(1,1) PRIMARY KEY,
     IdUser INT NOT NULL,
-    Message NVARCHAR(100) NOT NULL,
+    Message NVARCHAR(200) NOT NULL,
     DateCreate NVARCHAR(20),
     FOREIGN KEY (IdUser) REFERENCES Users(IdUser) ON DELETE CASCADE
 )

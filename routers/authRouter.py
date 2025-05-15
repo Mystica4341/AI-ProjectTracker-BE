@@ -17,8 +17,10 @@ def get_db():
 @router.post("/token")
 async def login(formData: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
   user = authenticateUser(db, formData.username, formData.password)
-  
-  permissions = userPermissionDAO.getUserPermissionByIdUser(db, user.IdUser)
+  try:
+    permissions = userPermissionDAO.getUserPermissionByIdUser(db, user.IdUser)
+  except HTTPException as e:
+    raise HTTPException(status_code=e.status_code, detail=f"Password or Username is incorrect")
   permistionsList = []
   for permission in permissions:
       permistionsList.append(permission.PermissionName)

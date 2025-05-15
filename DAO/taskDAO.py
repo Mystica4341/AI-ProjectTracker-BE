@@ -65,7 +65,7 @@ def createTask(db: Session, title: str, dueDate: str, priority: str, idProject: 
   db.refresh(task)
   return task
 
-def updateTask(db: Session, id: int, title: str, status: str, dateCreate: str, dueDate: str, priority: str, idProject: int):
+def updateTask(db: Session, id: int, title: str, status: str, dueDate: str, priority: str, idProject: int):
   try:
     existProject(db, idProject)
     task = getTaskById(db, id)
@@ -80,9 +80,7 @@ def updateTask(db: Session, id: int, title: str, status: str, dateCreate: str, d
   db.commit()
   db.refresh(task)
   
-  # Trigger notification if status is updated
-  if task.Status != status:
-    notificationDAO.triggerStatusUpnotifyTaskUpdatedateNotification(db, task.IdTask)
+  notificationDAO.notifyTaskUpdate(db, task.IdTask)
   
   return task
 

@@ -28,7 +28,6 @@ class TaskCreateSchema(BaseModel):
 class TaskUpdateSchema(BaseModel):
   Title: str
   Status: Optional[str]
-  DateCreate: Optional[str]
   DueDate: Optional[str]
   Priority: Optional[str]
   IdProject: Optional[int]
