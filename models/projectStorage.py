@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
+from datetime import datetime
 from database import Base
 
 class ProjectStorage(Base):
@@ -10,5 +10,5 @@ class ProjectStorage(Base):
     StorageUrl = Column(String)
     Filename = Column(String)
     Size = Column(Integer)
-    uploadDate = Column(String)
+    uploadDate = Column(String, default=lambda: datetime.now().strftime("%d/%m/%Y %H:%M"))
     

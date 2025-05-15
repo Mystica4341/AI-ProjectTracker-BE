@@ -40,30 +40,42 @@ def getProjectStoragePaginated(db: Session, page: int, pageSize: int, searchTerm
         }
 
 def getProjectStorageByIdProject(db: Session, id: int):
-  projectStorage = db.query(ProjectStorage).filter(ProjectStorage.IdProject == id).first()
-  if not projectStorage:
+  projectStorages = db.query(ProjectStorage).filter(ProjectStorage.IdProject == id).all()
+  if not projectStorages:
     raise HTTPException(status_code=404, detail="Id Project not found")
+  
+  for projectStorage in projectStorages:
+    project = projectDAO.getProjectById(db, projectStorage.IdProject)
+    
+    projectStorage.ProjectName = project.ProjectName
+    
+  return projectStorages
+
+def getProjectStorageByFilename(db: Session, filename: str):
+  projectStorage = db.query(ProjectStorage).filter(ProjectStorage.Filename.ilike(f"%{filename}%")).first()
+  if not projectStorage:
+    raise HTTPException(status_code=404, detail="Filename not found")
   return projectStorage
 
-def createProjectStorage(db: Session, idProject: int, storageUrl: str, filename: str, Size: int, uploadDate: str):
+def createProjectStorage(db: Session, idProject: int, storageUrl: str, filename: str, Size: int):
   try:
     # check if project exists
     existProject(db, idProject)
   except HTTPException as e:
     raise e
 
-  projectStorage = ProjectStorage(IdProject=idProject, StorageUrl=storageUrl, Filename=filename, Size=Size, uploadDate=uploadDate)
+  projectStorage = ProjectStorage(IdProject=idProject, StorageUrl=storageUrl, Filename=filename, Size=Size)
   db.add(projectStorage)
   db.commit()
   db.refresh(projectStorage)
   return projectStorage
 
-def updateProjectStorage(db: Session, id: int, idProject: int, storageUrl: str, filename: str, Size: int, uploadDate: str):
+def updateProjectStorage(db: Session, id: int, idProject: int, storageUrl: str, filename: str, Size: int):
   try:
     # check if project exists
     existProject(db, idProject)
     # find project storage by Id
-    projectStorage = getProjectStorageByIdProject(db, id)
+    projectStorage = db.query(ProjectStorage).filter(ProjectStorage.IdStorage == id).first()
   except HTTPException as e:
     raise e
 
@@ -71,14 +83,13 @@ def updateProjectStorage(db: Session, id: int, idProject: int, storageUrl: str, 
   projectStorage.StorageUrl = storageUrl
   projectStorage.Filename = filename
   projectStorage.Size = Size
-  projectStorage.uploadDate = uploadDate
   db.commit()
   db.refresh(projectStorage)
   return projectStorage
 
 def deleteProjectStorage(db: Session, id: int):
   try:
-    projectStorage = getProjectStorageByIdProject(db, id)
+    projectStorage = db.query(ProjectStorage).filter(ProjectStorage.IdStorage == id).first()
   except HTTPException as e:
     raise e
   db.delete(projectStorage)
