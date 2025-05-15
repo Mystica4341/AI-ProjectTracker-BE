@@ -37,5 +37,19 @@ def createNotification(idUser: int, message: str, db: Session = Depends(get_db))
     return notificationDAO.createNotification(db, idUser, message)
   except HTTPException as e:
     raise e
+  
+@router.delete("/{id}")
+def deleteNotification(id: int, db: Session = Depends(get_db)):
+  try:
+    return notificationDAO.deleteNotification(db, id)
+  except HTTPException as e:
+    raise e
+  
+@router.delete("/user/{id}")
+def deleteNotificationByIdUser(idUser: int, db: Session = Depends(get_db)):
+  try:
+    return notificationDAO.deleteAllNotificationsByIdUser(db, idUser)
+  except HTTPException as e:
+    raise e
 
 

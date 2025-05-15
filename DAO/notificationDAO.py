@@ -56,16 +56,37 @@ def createNotification(db: Session, idUser: int, message: str):
   return notification
 
 def getNotificationByIdUser(db: Session, idUser: int):
-  notification = db.query(Notification).filter(Notification.IdUser == idUser).all()
-  if notification is None:
+  notifications = db.query(Notification).filter(Notification.IdUser == idUser).all()
+  if notifications is None:
     raise HTTPException(status_code=404, detail="Notification not found")
 
-  for n in notification:
+  for n in notifications:
     users = userDAO.getUserById(db, n.IdUser)
     
     n.Username = users.Username
 
-  return notification
+  return notifications
+
+def deleteNotification(db: Session, id: int):
+  notification = db.query(Notification).filter(Notification.IdNotification == id).first()
+  if not notification:
+    raise HTTPException(status_code=404, detail="Notification not found")
+  
+  db.delete(notification)
+  db.commit()
+  return {"message": "Notification deleted successfully"}
+
+def deleteAllNotificationsByIdUser(db: Session, idUser: int):
+  try:
+    notifications = getNotificationByIdUser(db, idUser)
+  except HTTPException as e:
+    raise e
+  
+  for n in notifications:
+    db.delete(n)
+  
+  db.commit()
+  return {"message": f"All notifications deleted successfully"}
 
 def notifyExpiringTasks(db: Session):
     """
