@@ -19,7 +19,6 @@ class ProjectStorageCreateSchema(BaseModel):
   StorageURL: str
   Filename: str
   Size: int
-  uploadDate: str
 
   class Config:
     orm_mode = True
