@@ -20,10 +20,7 @@ from pydantic import BaseModel
 from haystack.utils import Secret
 from AI import Secret
 import os
-
 import requests
-
-
 
 router = APIRouter()
 
@@ -63,10 +60,11 @@ def retriever(idProject: int):
 chat_history = {}
 
 # Updated template to include conversation history
-template = [ChatMessage.from_system("""
+template = ChatMessage.from_system("""
 Using the information contained in the context and the conversation history, provide a comprehensive and moderate answer for the Question.
 Translate answer if possible.
 Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide.
+If the answer is not in the context, try to find relevant information
 
 Conversation History:
 {% for message in history %}
@@ -80,10 +78,33 @@ Context:
 
 Question: {{question}}
 Answer:
-""")]
+""")
 
-prompt_builder = ChatPromptBuilder(template=template)
+prompt_builder = ChatPromptBuilder(template=template, required_variables=["question"], variables=["history", "documents", "question"])
+"""
+Example of how to use the prompt builder
+
+# prompt = prompt_builder.run(
+#     question="What is the capital of France?",
+#     history=[
+#         ChatMessage.from_user("What is the capital of France?"),
+#         ChatMessage.from_assistant("The capital of France is Paris."),
+#         ChatMessage.from_user("What is the capital of Germany?")
+#     ],
+#     template=[template, ChatMessage.from_user("What is the capital of France?")]
+# )["prompt"]
+# print("Prompt Builder:", prompt)
+"""
+
 generator = GoogleAIGeminiChatGenerator(model="gemini-2.0-flash", api_key=Secret.GeminiToken)
+"""
+Example of how to use the generator
+
+# response = generator.run(
+#     messages = prompt,
+# )
+# print("Generator Response:", response["replies"][0].text)
+# """
 # generator = OpenAIGenerator(model="gpt-4", api_key=Secret.OpenAIToken)
 
 # Initialize pipeline for adding data
@@ -127,7 +148,7 @@ def pipelineAns(idProject: int):
     #connect
     query_pipeline.connect("text_embedder","retriever.query_embedding")
     query_pipeline.connect("retriever.documents","prompt_builder.documents")
-    query_pipeline.connect("prompt_builder", "llm")
+    query_pipeline.connect("prompt_builder.prompt", "llm.messages")
 
     return query_pipeline
 
@@ -168,6 +189,8 @@ async def write_docs(idProject: int, file_url: str):
 #         print('Error: ', e)
 #         return {"message": "Error deleting documents from the vector database."}
 
+# messages = [template]
+
 @router.post("/ask")
 def ask(question: Question):
     # Initialize chat history for the project if not already present
@@ -176,12 +199,15 @@ def ask(question: Question):
 
     # Add the user's question to the chat history
     chat_history[question.idProject].append(ChatMessage.from_user(question.query))
+    # print("Chat History:", chat_history[question.idProject])
 
     # Create Qdrant collection if it doesn't exist
     createQdrant(question.idProject)
 
     # Warm up the pipeline
     pipelineAns(question.idProject).warm_up()
+    
+    messages = [template, ChatMessage.from_user(question.query)]
 
     try:
         # Run the query pipeline with the chat history
@@ -189,17 +215,14 @@ def ask(question: Question):
             "text_embedder": {"text": question.query},
             "prompt_builder": {
                 "question": question.query,
-                "history": chat_history[question.idProject]
-            }
+                "history": chat_history[question.idProject],
+                "template": messages
+            }, 
         })
-        
-        print("Pipeline Response:", response)
 
         # Check if the response contains replies
         if "llm" in response and "replies" in response["llm"] and response["llm"]["replies"]:
             ai_response = response["llm"]["replies"][0]
-        else:
-            ai_response = "I'm sorry, I couldn't generate a response. Please try again."
 
     except Exception as e:
         print(f"Error: {e}")
@@ -209,6 +232,6 @@ def ask(question: Question):
     chat_history[question.idProject].append(ChatMessage.from_assistant(ai_response))
 
     return {
-        "Answer": ai_response,
-        "History": [{"role": msg.role, "content": msg.text} for msg in chat_history[question.idProject]]
+        "Answer": ai_response.text,
+        # "History": [{"role": msg.role, "content": msg.text} for msg in chat_history[question.idProject]]
     }
