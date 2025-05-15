@@ -85,15 +85,19 @@ def notifyExpiringTasks(db: Session):
         expiring_todos = db.query(Todo).join(Task, Todo.IdTask == Task.IdTask).filter(
             Task.DueDate.between(OneDayAhead_str, TwoDaysAhead_str)
         ).all()
+        
+        print(expiring_todos)
 
         for todo in expiring_todos:
             # Get the project member associated with the todo
             project_member = projectMemberDAO.getProjectMemberById(db, todo.IdProjectMember)
             task = taskDAO.getTaskById(db, todo.IdTask)
+            
+            if Task.Status != "Completed":
 
-            # Create a notification for the user
-            message = f"Task '{task.Title}' is about to expire on {task.DueDate}. Please take action."
-            createNotification(db, project_member.IdUser, message)
+              # Create a notification for the user
+              message = f"Task '{task.Title}' is about to expire on {task.DueDate}. Please take action."
+              createNotification(db, project_member.IdUser, message)
 
         return {"message": f"Notifications created for {len(expiring_todos)} expiring tasks."}
 
@@ -117,10 +121,13 @@ def notifyOverdueTasks(db: Session):
             # Get the project member associated with the todo
             project_member = projectMemberDAO.getProjectMemberById(db, todo.IdProjectMember)
             task = taskDAO.getTaskById(db, todo.IdTask)
+            
+            # Check if the task is not completed
+            if Task.Status != "Completed":
 
-            # Create a notification for the user
-            message = f"Task '{task.Title}' is overdue. Please take action."
-            createNotification(db, project_member.IdUser, message)
+              # Create a notification for the user
+              message = f"Task '{task.Title}' is overdue. Please take action."
+              createNotification(db, project_member.IdUser, message)
 
         return {"message": f"Notifications created for {len(overdue_todos)} overdue tasks."}
 
