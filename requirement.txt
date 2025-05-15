@@ -15,4 +15,6 @@ qdrant-haystack
 google-ai-haystack
 docx
 transformers
-"sentence-transformers>=3.0.0"
+haystack-integrations
+sentence-transformers>=3.0.0
+pydantic

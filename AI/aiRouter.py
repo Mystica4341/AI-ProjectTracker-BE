@@ -1,14 +1,17 @@
-from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from database import qdrant_client
+from qdrant_client.http import models
 from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder, SentenceTransformersTextEmbedder
-from haystack.components.converters import PyPDFToDocument
+from haystack.components.converters import PyPDFToDocument, DOCXToDocument
 from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-from haystack_integrations.components.generators.google_ai import GoogleAIGeminiGenerator
-from haystack.components.builders import PromptBuilder
-from haystack import Document, Pipeline
-from haystack.components.converters import DOCXToDocument
+from haystack_integrations.components.generators.google_ai import GoogleAIGeminiChatGenerator
+from haystack.dataclasses import ChatMessage
+from haystack.components.joiners import DocumentJoiner
+from haystack.components.routers import FileTypeRouter
+# from haystack.components.generators import OpenAIGenerator
+from haystack.components.builders import ChatPromptBuilder
+from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
@@ -16,24 +19,13 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from haystack.utils import Secret
 from AI import Secret
+import os
+
+import requests
+
+
 
 router = APIRouter()
-
-docs = [Document(content="Company's name is QNA Corps Ltd."),
-    Document(content="QNA Corps Ltd. was established in 2000 with a vision to become a leading player in the technology sector. We are committed to providing our customers with high-quality products and services that meet their needs and exceed their expectations."),
-    Document(content="• Short-term goals: Expand domestic market, improve product and service quality. • Long-term goals: Become a leading technology group in the ASEAN region."),
-    Document(content="QNA Corps Ltd. is headquartered at 123 Tech Street, Quận 1, TP. Hồ Chí Minh, Việt Nam."),
-    Document(content="The company has over 500 employees."),
-    Document(content="QNA Corps Ltd. specializes in information technology, software development, and enterprise solutions."),
-    Document(content="Vision: To become the symbol of technological innovation in Southeast Asia."),
-    Document(content="Mission: Deliver superior technological value to customers, partners, and the community."),
-    Document(content="Core values: 1. Innovation: Always innovate and continuously develop. 2. Quality: Committed to providing the best products and services. 3. Partnership: Building long-term connections with customers and partners."),
-    Document(content="Products: 1. Enterprise Resource Planning (ERP) solutions. 2. Customer Relationship Management (CRM) applications. 3. Big Data analytics systems."),
-    Document(content="Services: 1. Technology implementation consulting. 2. Technical support and maintenance. 3. Technology training for enterprises."),
-    Document(content="Achievements: 1. Awarded 'Outstanding Technology Enterprise 2022' at the ASEAN Tech Awards. 2. Recognized as a Top 10 reputable technology company in Vietnam for 10 consecutive years."),
-    Document(content="Strategic partners: Microsoft, AWS, Google Cloud, IBM, and leading ASEAN corporations such as VinGroup, Grab, and Petronas."),
-    Document(content="Contact information: Email: support@qnacorps.com | Phone: +84 123 456 789 | Website: www.qnacorps.com.")
-]
 
 class Question(BaseModel):
     idProject: int
@@ -67,7 +59,8 @@ def embedderText():
 def retriever(idProject: int):
     return QdrantEmbeddingRetriever(document_store=storeDocs(idProject))
 
-template = """
+
+template = [ChatMessage.from_system("""
 Using the information contained in the context that match with the Question, provide a comprehensive and moderate answer for the Question.
 Translate answer if possible
 Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide
@@ -80,24 +73,33 @@ Context:
 Question: {{question}}
 Answer:
 """
-prompt_builder = PromptBuilder(template=template)
-generator = GoogleAIGeminiGenerator(model="gemini-2.0-flash", api_key=Secret.GeminiToken)
-
+)
+]
+prompt_builder = ChatPromptBuilder(template=template)
+generator = GoogleAIGeminiChatGenerator(model="gemini-2.0-flash", api_key=Secret.GeminiToken)
+# generator = OpenAIGenerator(model="gpt-4", api_key=Secret.OpenAIToken)
 # Initialize pipeline for adding data
 add_data_pipeline = Pipeline()
 def pipelineAddData(idProject: int):
     # Add components to your pipeline
     try:
-        add_data_pipeline.add_component("converter",PyPDFToDocument())
-        add_data_pipeline.add_component("cleaner", DocumentCleaner(remove_empty_lines=False, remove_extra_whitespaces=False))
-        add_data_pipeline.add_component("splitter", DocumentSplitter(split_by="passage", split_length=1))
+        add_data_pipeline.add_component("file_router", FileTypeRouter(mime_types=["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]))
+        add_data_pipeline.add_component("pdfconverter", PyPDFToDocument())
+        add_data_pipeline.add_component("docxconverter", DOCXToDocument())
+        add_data_pipeline.add_component("joiner", DocumentJoiner())
+        add_data_pipeline.add_component("cleaner", DocumentCleaner(remove_empty_lines=True, remove_extra_whitespaces=True))
+        add_data_pipeline.add_component("splitter", DocumentSplitter(split_by="word", split_length=500, split_overlap=10))
         add_data_pipeline.add_component("embedder", embedderDoc())
         add_data_pipeline.add_component("writer", DocumentWriter(storeDocs(idProject)))
     except Exception as e:
         print('Error: ', e)
 
     # Now, connect the components to each other
-    add_data_pipeline.connect("converter", "cleaner")
+    add_data_pipeline.connect("file_router.application/pdf", "pdfconverter")
+    add_data_pipeline.connect("file_router.application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docxconverter")
+    add_data_pipeline.connect("pdfconverter", "joiner")
+    add_data_pipeline.connect("docxconverter", "joiner")
+    add_data_pipeline.connect("joiner", "cleaner")
     add_data_pipeline.connect("cleaner", "splitter")
     add_data_pipeline.connect("splitter", "embedder")
     add_data_pipeline.connect("embedder", "writer")
@@ -105,37 +107,63 @@ def pipelineAddData(idProject: int):
 
 # Initialize pipeline for answering questions
 query_pipeline = Pipeline()
-
 def pipelineAns(idProject: int):
     try:
         #components
         query_pipeline.add_component("text_embedder",embedderText())
         query_pipeline.add_component("retriever", retriever(idProject))
-        query_pipeline.add_component("prompt_builder", prompt_builder)
+        query_pipeline.add_component("prompt_builder", prompt_builder)    
         query_pipeline.add_component("llm", generator)
     except Exception as e:
         print('Error: ', e)
     #connect
     query_pipeline.connect("text_embedder","retriever.query_embedding")
     query_pipeline.connect("retriever.documents","prompt_builder.documents")
-    query_pipeline.connect("prompt_builder.prompt", "llm")
-    return query_pipeline
+    query_pipeline.connect("prompt_builder.prompt", "llm.messages")
 
-def writeDoc(idProject: int):
-    embeddedDocs = embedderDoc().run(docs)
-    try:
-        storeDocs(idProject).write_documents(embeddedDocs['documents'])
-        print(' Documents wrote to the vectorDB Successfully')
-    except Exception as e:
-        print('Error: ', e)
+    return query_pipeline
 
 # def uploadDocs():
 #     return 0
+@router.post("/write-docs")
+async def write_docs(idProject: int, file_url: str):
+    createQdrant(idProject)
+
+    """
+    Endpoint to upload a DOCX or PDF file and write its content to the vector database.
+    """
+    response = requests.get(file_url)
+    file_content = response.content
+    # Check file type
+
+    file_name = os.path.basename(file_url)
+    with open(file_name, "wb") as temp_file:
+        temp_file.write(file_content)
+    # Read file content
+
+
+    pipelineAddData(idProject).warm_up()
+    # Embed and write documents to the vector database
+    add_data_pipeline.run({"file_router": {"sources": [file_name]}})
+    return {"message": "Documents successfully written to the vector database."}
+
+@router.post("delete-docs")
+def delete_docs(idProject: int, fileName: str):
+    """
+    Endpoint to delete all documents from the vector database.
+    """
+    try:
+        qdrant_client.delete("collection" + str(idProject), models.FilterSelector(filter = models.Filter(must=[models.FieldCondition(key="meta",match= models.MatchValue(value=fileName))])))
+        return {"message": "Documents successfully deleted from the vector database."}
+    except Exception as e:
+        print('Error: ', e)
+        return {"message": "Error deleting documents from the vector database."}
 
 @router.post("/ask")
 def ask(question: Question):
     createQdrant(question.idProject)
-    response = pipelineAns(question.idProject).run({"text_embedder": {"text": question.query}, "prompt_builder": {"question": question.query}})
+    pipelineAns(question.idProject).warm_up()
+    response = query_pipeline.run({"text_embedder": {"text": question.query}, "prompt_builder": {"question": question.query}})
     return {
         "Answer": response["llm"]["replies"][0]
     }
