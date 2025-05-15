@@ -15,11 +15,7 @@ qdrant-haystack
 google-ai-haystack
 docx
 transformers
-<<<<<<< HEAD
 haystack-integrations
 sentence-transformers>=3.0.0
 pydantic
-=======
-"sentence-transformers>=3.0.0"
 apscheduler
->>>>>>> 53e4346c7641362980f1612a69240f0fa78b72e6
