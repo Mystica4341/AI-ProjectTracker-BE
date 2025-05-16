@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from models.project import Project
 from DAO import projectDAO
 
-def getProjectStoragePaginated(db: Session, page: int, pageSize: int, searchTerm: str = None):
+def getProjectStoragesPagination(db: Session, page: int, pageSize: int, searchTerm: str = None):
   query = db.query(ProjectStorage).join(Project, ProjectStorage.IdProject == Project.IdProject)
 
   # filter by search term

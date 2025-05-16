@@ -60,8 +60,8 @@ CREATE TABLE ToDos (
     IdToDo INT IDENTITY(1,1) PRIMARY KEY,
     IdProjectMember INT,
     IdTask INT,
-    FOREIGN KEY (IdProjectMember) REFERENCES ProjectMembers(IdProjectMember) ON DELETE CASCADE,
-    FOREIGN KEY (IdTask) REFERENCES Tasks(IdTask)
+    FOREIGN KEY (IdProjectMember) REFERENCES ProjectMembers(IdProjectMember),
+    FOREIGN KEY (IdTask) REFERENCES Tasks(IdTask) ON DELETE CASCADE
 )
 
 CREATE TABLE ChatHistory (

@@ -64,7 +64,11 @@ template = ChatMessage.from_system("""
 Using the information contained in the context and the conversation history, provide a comprehensive and moderate answer for the Question.
 Translate answer to vietnamese if the question is vietnamese and if possible.
 Only provide an "[Url]: url of article" at bottom of the answer if meta section has the url else DO NOT provide.
-If the answer is not in the context, try to find relevant information
+If the answer is not in the context, try to find relevant information from the context and provide a comprehensive answer.
+If the question is about a specific topic, provide a detailed answer based on the context. 
+If the question is about a specific document, provide a summary of that document if required. 
+If the question is about a specific organization, provide relevant information about that organization based on the context. 
+If the question is about a specific product, provide relevant information about that product based on the context.
 If the question is about analysis, provide a detailed analysis and recommendation based on the context. Finally, please suggest a better solution if possible.
 
 Conversation History:
@@ -155,11 +159,11 @@ def pipelineAns(idProject: int):
 
 @router.post("/write-docs")
 async def write_docs(idProject: int, file_url: str):
-    createQdrant(idProject)
 
     """
     Endpoint to upload a DOCX or PDF file and write its content to the vector database.
     """
+    createQdrant(idProject)
     response = requests.get(file_url)
     file_content = response.content
     # Check file type
@@ -170,9 +174,8 @@ async def write_docs(idProject: int, file_url: str):
     # Read file content
 
 
-    pipelineAddData(idProject).warm_up()
     # Embed and write documents to the vector database
-    add_data_pipeline.run({"file_router": {"sources": [file_name]}})
+    pipelineAddData(idProject).run({"file_router": {"sources": [file_name]}})
     os.remove(file_name) 
     return {"message": "Documents successfully written to the vector database."}
 

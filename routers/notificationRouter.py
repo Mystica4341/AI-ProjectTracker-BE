@@ -25,9 +25,9 @@ def getNotificationsPagination(
     raise e
   
 @router.get("/{id}")
-def getNotificationByIdUser(idUser: int, db: Session = Depends(get_db)):
+def getNotificationByIdUser(id: int, db: Session = Depends(get_db)):
   try:
-    return notificationDAO.getNotificationByIdUser(db, idUser)
+    return notificationDAO.getNotificationByIdUser(db, id)
   except HTTPException as e:
     raise e
   
@@ -46,9 +46,9 @@ def deleteNotification(id: int, db: Session = Depends(get_db)):
     raise e
   
 @router.delete("/user/{id}")
-def deleteNotificationByIdUser(idUser: int, db: Session = Depends(get_db)):
+def deleteNotificationByIdUser(id: int, db: Session = Depends(get_db)):
   try:
-    return notificationDAO.deleteAllNotificationsByIdUser(db, idUser)
+    return notificationDAO.deleteAllNotificationsByIdUser(db, id)
   except HTTPException as e:
     raise e
 
